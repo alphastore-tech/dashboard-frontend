@@ -1,5 +1,8 @@
+"use client";
+
 import StatCard from "@/components/StatCard";
 import DataTable from "@/components/DataTable";
+import useBalance from "@/components/useBalance";
 
 const stats = [
   { label: "Balance", value: "50,000" },
@@ -7,13 +10,6 @@ const stats = [
   { label: "Sharpe Ratio", value: "1.25" },
   { label: "MDD", value: "-10.2%" },
   { label: "Volatility", value: "12.8%" },
-];
-
-const currentPositions = [
-  { type: "Futures", symbol: "ES", qty: 3, avgPrice: "4,200.50", pl: "5.4%" },
-  { type: "Stock", symbol: "AAPL", qty: 10, avgPrice: "150.75", pl: "-2.3%" },
-  { type: "Futures", symbol: "CL", qty: 2, avgPrice: "70.30", pl: "1.8%" },
-  { type: "Stock", symbol: "GOOGL", qty: 5, avgPrice: "2,800.10", pl: "7.5%" },
 ];
 
 const orders = [
@@ -47,28 +43,47 @@ const orders = [
 ];
 
 export default function Page() {
+  const { data, isLoading, error } = useBalance();
+  let positions = [];
+  if (data && data.output1) {
+    positions = data.output1.map((o: any) => ({
+      symbol: o.prdt_name,
+      qty: Number(o.hldg_qty),
+      avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
+      plPercent: o.evlu_pfls_rt + "%",
+    }));
+  }
+
   return (
     <main className="p-8 space-y-8">
-      <h1 className="text-3xl font-bold">Strategy 1</h1>
+      <h1 className="text-3xl font-bold mb-8">Strategy 1</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* KPI 카드 (Mock Data) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} />
         ))}
       </div>
 
-      <DataTable
-        title="Current Positions"
-        columns={[
-          { header: "Type", accessor: "type" },
-          { header: "Symbol", accessor: "symbol" },
-          { header: "Qty", accessor: "qty" },
-          { header: "Avg Price", accessor: "avgPrice" },
-          { header: "P/L (%)", accessor: "pl" },
-        ]}
-        data={currentPositions}
-      />
+      {/* 실시간 포지션 테이블 (API) */}
+      {isLoading && !data ? (
+        <p className="p-8">Loading…</p>
+      ) : error ? (
+        <p className="p-8 text-red-600">API 오류: {error.message}</p>
+      ) : (
+        <DataTable
+          title="Current Positions"
+          columns={[
+            { header: "종목", accessor: "symbol" },
+            { header: "수량", accessor: "qty", align: "right" },
+            { header: "평균단가", accessor: "avgPrice", align: "right" },
+            { header: "손익(%)", accessor: "plPercent", align: "right" },
+          ]}
+          data={positions}
+        />
+      )}
 
+      {/* 주문내역 (Mock Data) */}
       <DataTable
         title="Order History"
         columns={[
