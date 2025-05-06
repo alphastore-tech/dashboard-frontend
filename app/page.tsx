@@ -66,9 +66,7 @@ export default function Page() {
       </div>
 
       {/* 실시간 포지션 테이블 (API) */}
-      {isLoading && !data ? (
-        <p className="p-8">Loading…</p>
-      ) : error ? (
+      {error ? (
         <p className="p-8 text-red-600">API 오류: {error.message}</p>
       ) : (
         <DataTable
@@ -80,6 +78,8 @@ export default function Page() {
             { header: "손익(%)", accessor: "plPercent", align: "right" },
           ]}
           data={positions}
+          loading={isLoading && !data}
+          emptyMessage="보유 종목이 없습니다."
         />
       )}
 
