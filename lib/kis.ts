@@ -40,8 +40,6 @@ export async function getAccessToken() {
   }
 
   token = data.access_token;
-  console.log(token);
-
   // expires_in: 초 단위, access_token_token_expired: "YYYY-MM-DD HH:mm:ss"
   // 6시간 이내 재호출 시 기존 토큰 리턴, 6시간 이후엔 새 토큰 발급됨
   // expires_in은 24시간(86400초) 기준, 1시간(3600초) 여유 두고 만료 처리
@@ -109,3 +107,71 @@ export interface BalanceResponse {
     tot_evlu_amt: string // 총평가금액
   }[]
 }
+
+
+/** ──────────────────────────────────────────
+ *  (NEW) 선물·옵션 잔고 조회
+ *  ────────────────────────────────────────── */
+export async function fetchFoBalance({
+  cano,
+  acntPrdtCd,
+  mgnDiv = '01',           // 개시증거금
+  exccStatCd = '2',        // 정산가 기준
+  ctxAreaFk200 = '',
+  ctxAreaNk200 = '',
+}: {
+  cano: string
+  acntPrdtCd: string
+  mgnDiv?: '01' | '02'
+  exccStatCd?: '1' | '2'
+  ctxAreaFk200?: string
+  ctxAreaNk200?: string
+}) {
+  const q = qs.stringify({
+    CANO: cano,
+    ACNT_PRDT_CD: acntPrdtCd,
+    MGNA_DVSN: mgnDiv,
+    EXCC_STAT_CD: exccStatCd,
+    CTX_AREA_FK200: ctxAreaFk200,
+    CTX_AREA_NK200: ctxAreaNk200,
+  })
+
+  const accessToken = await getAccessToken()
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-balance?${q}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${accessToken}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'CTFO6118R',
+      },
+      cache: 'no-store',
+    },
+  )
+
+  console.log(res);
+
+  if (!res.ok) throw new Error(`FO balance HTTP ${res.status}`)
+  return res.json() as Promise<FoBalanceResponse>
+}
+
+/* 필요한 필드만 선언 */
+export interface FoBalanceResponse {
+  output1: {
+    pdno: string          // 종목코드
+    prdt_name: string     // 종목명
+    sll_buy_dvsn_name: string // 매수/매도
+    cblc_qty: string      // 잔고수량
+    ccld_avg_unpr1: string// 평균단가
+    evlu_pfls_amt: string // 평가손익
+  }[],
+  output2: {
+    prsm_dpast: string    // 추정예탁자산
+  }[]
+}
+
+

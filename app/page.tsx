@@ -3,6 +3,7 @@
 import StatCard from "@/components/StatCard";
 import DataTable from "@/components/DataTable";
 import useBalance from "@/components/useBalance";
+import useFoBalance from "@/components/useFoBalance";
 import { useMemo } from "react";
 
 const orders = [
@@ -37,6 +38,12 @@ const orders = [
 
 export default function Page() {
   const { data, isLoading, error } = useBalance();
+  const {
+    data: futureData,
+    isLoading: futureLoading,
+    error: futureError,
+  } = useFoBalance();
+
   let positions = [];
   if (data && data.output1) {
     positions = data.output1.map((o: any) => ({
@@ -53,14 +60,21 @@ export default function Page() {
       data?.output2?.[0]?.tot_evlu_amt !== undefined
         ? Number(data.output2[0].tot_evlu_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
+
+    const futureTotEval =
+      futureData?.output2?.[0]?.prsm_dpast !== undefined
+        ? Number(futureData.output2[0].prsm_dpast).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
     return [
-      { label: "총평가금액(원)", value: totEval },
-      { label: "Return", value: "8.5%" }, // TODO: 실제 API값으로 교체
+      { label: "주식 잔고 총평가금액(원)", value: totEval },
+      { label: "선물옵션 잔고 총평가금액(원)", value: futureTotEval },
+      { label: "Return", value: "8.5%" },
       { label: "Sharpe Ratio", value: "1.25" },
       { label: "MDD", value: "-10.2%" },
       { label: "Volatility", value: "12.8%" },
     ];
-  }, [data]);
+  }, [data, futureData]);
 
   return (
     <main className="p-8 space-y-8">
