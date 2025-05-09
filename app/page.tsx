@@ -3,14 +3,7 @@
 import StatCard from "@/components/StatCard";
 import DataTable from "@/components/DataTable";
 import useBalance from "@/components/useBalance";
-
-const stats = [
-  { label: "Balance", value: "50,000" },
-  { label: "Return", value: "8.5%" },
-  { label: "Sharpe Ratio", value: "1.25" },
-  { label: "MDD", value: "-10.2%" },
-  { label: "Volatility", value: "12.8%" },
-];
+import { useMemo } from "react";
 
 const orders = [
   {
@@ -54,9 +47,24 @@ export default function Page() {
     }));
   }
 
+  /* --------- KPI 카드 데이터 --------- */
+  const stats = useMemo(() => {
+    const totEval =
+      data?.output2?.[0]?.tot_evlu_amt !== undefined
+        ? Number(data.output2[0].tot_evlu_amt).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+    return [
+      { label: "총평가금액(원)", value: totEval },
+      { label: "Return", value: "8.5%" }, // TODO: 실제 API값으로 교체
+      { label: "Sharpe Ratio", value: "1.25" },
+      { label: "MDD", value: "-10.2%" },
+      { label: "Volatility", value: "12.8%" },
+    ];
+  }, [data]);
+
   return (
     <main className="p-8 space-y-8">
-      <h1 className="text-3xl font-bold mb-8">Strategy 1</h1>
+      <h1 className="text-3xl font-bold mb-8">Stock Spot & Future</h1>
 
       {/* KPI 카드 (Mock Data) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">

@@ -40,6 +40,7 @@ export async function getAccessToken() {
   }
 
   token = data.access_token;
+  console.log(token);
 
   // expires_in: 초 단위, access_token_token_expired: "YYYY-MM-DD HH:mm:ss"
   // 6시간 이내 재호출 시 기존 토큰 리턴, 6시간 이후엔 새 토큰 발급됨
@@ -89,6 +90,8 @@ export async function fetchBalance({
     cache: 'no-store',
   })
 
+  console.log(res);
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json() as Promise<BalanceResponse>
 }
@@ -101,8 +104,8 @@ export interface BalanceResponse {
     hldg_qty: string
     pchs_avg_pric: string
     evlu_pfls_rt: string
-  }[]
+  }[],
   output2: {
-    nass_amt: string   // 순자산
+    tot_evlu_amt: string // 총평가금액
   }[]
 }
