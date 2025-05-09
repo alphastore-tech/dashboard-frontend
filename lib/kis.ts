@@ -161,6 +161,11 @@ export async function fetchFoBalance({
 
 /* 필요한 필드만 선언 */
 export interface FoBalanceResponse {
+  rt_cd: string
+  msg_cd: string
+  msg1: string
+  ctx_area_fk200: string
+  ctx_area_nk200: string
   output1: {
     pdno: string          // 종목코드
     prdt_name: string     // 종목명
@@ -171,7 +176,8 @@ export interface FoBalanceResponse {
   }[],
   output2: {
     prsm_dpast: string    // 추정예탁자산
-  }[]
+    prsm_dpast_amt: string    // 추정예탁자산금액
+  }
 }
 
 

@@ -57,13 +57,13 @@ export default function Page() {
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
     const totEval =
-      data?.output2?.[0]?.tot_evlu_amt !== undefined
-        ? Number(data.output2[0].tot_evlu_amt).toLocaleString()
+      data?.output2[0]?.tot_evlu_amt !== undefined
+        ? Number(data?.output2[0]?.tot_evlu_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const futureTotEval =
-      futureData?.output2?.[0]?.prsm_dpast !== undefined
-        ? Number(futureData.output2[0].prsm_dpast).toLocaleString()
+      futureData?.output2.prsm_dpast !== undefined
+        ? Number(futureData?.output2.prsm_dpast).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     return [
