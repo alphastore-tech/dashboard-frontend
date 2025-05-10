@@ -245,14 +245,15 @@ export async function fetchDailyOrders({
 }
 
 export interface OrderRow {
-  ord_dt: string
-  pdno: string
-  prdt_name: string
-  ord_qty: string
-  ord_unpr: string
-  tot_ccld_qty: string
-  avg_prvs: string
-  cncl_yn: string
+  odno: string // 주문번호
+  ord_tmd: string // 주문시각
+  prdt_name: string // 종목명
+  sll_buy_dvsn_cd_name: string // 매수/매도
+  ord_qty: string // 주문수량
+  tot_ccld_qty: string // 총체결수량
+  ord_unpr: string // 주문가격
+  avg_prvs: string // 평균체결가격
+  tot_ccld_amt: string // 총체결금액
 }
 
 export interface OrderHistoryResponse {

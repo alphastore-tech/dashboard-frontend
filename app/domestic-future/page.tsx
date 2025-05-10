@@ -12,7 +12,8 @@ const futureOrders = [
     주문번호: 2004,
     호가유형코드: "00",
     상품번호: "005930",
-    상품명: "삼성전자 F06",
+    종목: "삼성전자 F06",
+    매수매도: "매수",
     주문수량: 2,
     총체결수량: 2,
     주문가격: "75,000",
@@ -25,6 +26,7 @@ const futureOrders = [
     호가유형코드: "01",
     상품번호: "373220",
     상품명: "LG에너지솔루션 F06",
+    매수매도: "매도",
     주문수량: 1,
     총체결수량: 0,
     주문가격: "420,000",
@@ -37,6 +39,7 @@ const futureOrders = [
     호가유형코드: "00",
     상품번호: "035420",
     상품명: "NAVER F06",
+    매수매도: "매수",
     주문수량: 3,
     총체결수량: 3,
     주문가격: "210,000",
@@ -91,13 +94,15 @@ export default function Page() {
 
   const orders =
     orderData?.output1?.map((o: any) => ({
-      date: o.ord_dt.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
+      orderNo: o.odno,
+      orderTime: o.ord_tmd,
       symbol: o.prdt_name,
-      side: o.sll_buy_dvsn_cd === "02" ? "BUY" : "SELL",
-      qty: Number(o.ord_qty),
+      side: o.sll_buy_dvsn_cd_name,
+      orderQty: Number(o.ord_qty),
       filledQty: Number(o.tot_ccld_qty),
+      orderPrice: Number(o.ord_unpr).toLocaleString(),
       avgPrice: Number(o.avg_prvs).toLocaleString(),
-      status: o.cncl_yn === "Y" ? "Canceled" : "Filled",
+      totalAmount: Number(o.tot_ccld_amt).toLocaleString(),
     })) ?? [];
 
   /* --------- KPI 카드 데이터 --------- */
@@ -175,13 +180,15 @@ export default function Page() {
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
-          { header: "일자", accessor: "date" },
+          { header: "주문번호", accessor: "orderNo" },
+          { header: "주문시각", accessor: "orderTime" },
           { header: "종목", accessor: "symbol" },
-          { header: "매수/매도", accessor: "side", align: "center" },
-          { header: "주문수량", accessor: "qty", align: "right" },
+          { header: "매수/매도", accessor: "side" },
+          { header: "주문수량", accessor: "orderQty", align: "right" },
           { header: "체결수량", accessor: "filledQty", align: "right" },
-          { header: "평균단가", accessor: "avgPrice", align: "right" },
-          { header: "체결상태", accessor: "status" },
+          { header: "주문가격", accessor: "orderPrice", align: "right" },
+          { header: "평균체결가격", accessor: "avgPrice", align: "right" },
+          { header: "총체결금액", accessor: "totalAmount", align: "right" },
         ]}
         data={orders}
         loading={orderLoading && !orderData}
@@ -194,15 +201,14 @@ export default function Page() {
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
         columns={[
           { header: "주문번호", accessor: "주문번호" },
-          { header: "호가유형코드", accessor: "호가유형코드" },
-          { header: "상품번호", accessor: "상품번호" },
-          { header: "상품명", accessor: "상품명" },
+          { header: "주문시각", accessor: "주문시각" },
+          { header: "종목", accessor: "종목" },
+          { header: "매수/매도", accessor: "매수매도" },
           { header: "주문수량", accessor: "주문수량" },
           { header: "총체결수량", accessor: "총체결수량" },
           { header: "주문가격", accessor: "주문가격" },
           { header: "평균체결가격", accessor: "평균체결가격" },
           { header: "총체결금액", accessor: "총체결금액" },
-          { header: "주문시각", accessor: "주문시각" },
         ]}
         data={futureOrders}
       />
