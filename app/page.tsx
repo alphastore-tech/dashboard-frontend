@@ -17,6 +17,8 @@ const strategies = [
   { id: "domestic-future", name: "국내 주식 선물" },
   { id: "coins", name: "코인" },
   { id: "domestic-etfs", name: "국내 ETF" },
+  { id: "domestic-stock-long-term", name: "국내 주식 계좌 포트폴리오" },
+  { id: "foreign-stock", name: "해외 주식 계좌 포트폴리오" },
 ];
 
 export default function OverviewPage() {
