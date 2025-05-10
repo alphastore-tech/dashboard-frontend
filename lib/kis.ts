@@ -104,8 +104,9 @@ export interface BalanceResponse {
     prpr: string // 현재가
     pchs_amt: string // 매입금액
     evlu_amt: string // 평가금액
-    evlu_pfls_rt: string // 평가손익율
     evlu_pfls_amt: string // 평가손익금액
+    evlu_pfls_rt: string // 평가손익율
+    
   }[],
   output2: {
     tot_evlu_amt: string // 총평가금액
@@ -171,12 +172,15 @@ export interface FoBalanceResponse {
   ctx_area_fk200: string
   ctx_area_nk200: string
   output1: {
-    pdno: string          // 종목코드
+    shtn_pdno: string          // 단축상품번호
     prdt_name: string     // 종목명
     sll_buy_dvsn_name: string // 매수/매도
     cblc_qty: string      // 잔고수량
     ccld_avg_unpr1: string// 평균단가
-    evlu_pfls_amt: string // 평가손익
+    excc_unpr: string // 정산단가
+    pchs_amt: string        // 매입금액
+    evlu_amt: string       // 평가금액
+    evlu_pfls_amt: string  // 평가손익금액
   }[],
   output2: {
     prsm_dpast: string    // 추정예탁자산

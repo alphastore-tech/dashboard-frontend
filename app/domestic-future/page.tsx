@@ -69,8 +69,8 @@ export default function Page() {
       currentPrice: Number(o.prpr).toLocaleString(),
       purchaseAmount: Number(o.pchs_amt).toLocaleString(),
       evalAmount: Number(o.evlu_amt).toLocaleString(),
-      plPercent: o.evlu_pfls_rt + "%",
       plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
+      plPercent: o.evlu_pfls_rt + "%",
     }));
   }
 
@@ -78,9 +78,14 @@ export default function Page() {
   if (futureData && futureData.output1) {
     futurePositions = futureData.output1.map((o: any) => ({
       symbol: o.prdt_name,
+      side: o.trad_dvsn_name,
       qty: Number(o.hldg_qty),
       avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
-      plPercent: o.evlu_pfls_rt + "%",
+      currentPrice: Number(o.prpr).toLocaleString(),
+      purchaseAmount: Number(o.pchs_amt).toLocaleString(),
+      evalAmount: Number(o.evlu_amt).toLocaleString(),
+      plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
+      plPercent: ((o.plAmount / o.purchaseAmount) * 100).toFixed(2) + "%",
     }));
   }
 
@@ -138,8 +143,8 @@ export default function Page() {
           { header: "현재가", accessor: "currentPrice", align: "right" },
           { header: "매입금액", accessor: "purchaseAmount", align: "right" },
           { header: "평가금액", accessor: "evalAmount", align: "right" },
-          { header: "손익률", accessor: "plPercent", align: "right" },
           { header: "손익금액", accessor: "plAmount", align: "right" },
+          { header: "손익률", accessor: "plPercent", align: "right" },
         ]}
         data={positions}
         loading={isLoading && !data}
@@ -151,9 +156,14 @@ export default function Page() {
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
         columns={[
           { header: "종목", accessor: "symbol" },
+          { header: "매수/매도", accessor: "side" },
           { header: "수량", accessor: "qty", align: "right" },
           { header: "평균단가", accessor: "avgPrice", align: "right" },
-          { header: "손익(%)", accessor: "plPercent", align: "right" },
+          { header: "현재가", accessor: "currentPrice", align: "right" },
+          { header: "매입금액", accessor: "purchaseAmount", align: "right" },
+          { header: "평가금액", accessor: "evalAmount", align: "right" },
+          { header: "손익금액", accessor: "plAmount", align: "right" },
+          { header: "손익률", accessor: "plPercent", align: "right" },
         ]}
         data={futurePositions}
         loading={futureLoading && !futureData}
