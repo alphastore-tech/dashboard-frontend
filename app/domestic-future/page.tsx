@@ -97,40 +97,34 @@ export default function Page() {
         ))}
       </div>
 
-      {/* 실시간 포지션 테이블 (API) */}
-      {error ? (
-        <p className="p-8 text-red-600">API 오류: {error.message}</p>
-      ) : (
-        <DataTable
-          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
-          columns={[
-            { header: "종목", accessor: "symbol" },
-            { header: "수량", accessor: "qty", align: "right" },
-            { header: "평균단가", accessor: "avgPrice", align: "right" },
-            { header: "손익(%)", accessor: "plPercent", align: "right" },
-          ]}
-          data={positions}
-          loading={isLoading && !data}
-          emptyMessage="보유 종목이 없습니다."
-        />
-      )}
-      {/* 실시간 포지션 테이블 (API) */}
-      {error ? (
-        <p className="p-8 text-red-600">API 오류: {error.message}</p>
-      ) : (
-        <DataTable
-          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
-          columns={[
-            { header: "종목", accessor: "symbol" },
-            { header: "수량", accessor: "qty", align: "right" },
-            { header: "평균단가", accessor: "avgPrice", align: "right" },
-            { header: "손익(%)", accessor: "plPercent", align: "right" },
-          ]}
-          data={futurePositions}
-          loading={futureLoading && !futureData}
-          emptyMessage="보유 종목이 없습니다."
-        />
-      )}
+      {/* 실시간 주식 계좌 잔고 포지션 테이블 (API) */}
+      <DataTable
+        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
+        columns={[
+          { header: "종목", accessor: "symbol" },
+          { header: "수량", accessor: "qty", align: "right" },
+          { header: "평균단가", accessor: "avgPrice", align: "right" },
+          { header: "손익(%)", accessor: "plPercent", align: "right" },
+        ]}
+        data={positions}
+        loading={isLoading && !data}
+        emptyMessage="보유 종목이 없습니다."
+        error={error}
+      />
+      {/* 실시간 선물옵션 계좌 잔고 포지션 테이블 (API) */}
+      <DataTable
+        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
+        columns={[
+          { header: "종목", accessor: "symbol" },
+          { header: "수량", accessor: "qty", align: "right" },
+          { header: "평균단가", accessor: "avgPrice", align: "right" },
+          { header: "손익(%)", accessor: "plPercent", align: "right" },
+        ]}
+        data={futurePositions}
+        loading={futureLoading && !futureData}
+        emptyMessage="보유 종목이 없습니다."
+        error={futureError}
+      />
 
       {/* 주문내역 (Mock Data) */}
       <DataTable

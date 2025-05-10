@@ -10,6 +10,7 @@ interface DataTableProps<T extends Record<string, any>> {
   data: T[];
   loading?: boolean;
   emptyMessage?: string;
+  error?: Error | null;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -18,6 +19,7 @@ export default function DataTable<T extends Record<string, any>>({
   data,
   loading = false,
   emptyMessage = "데이터가 없습니다.",
+  error = null,
 }: DataTableProps<T>) {
   const defaultAlign = (v: any) =>
     typeof v === "number" || /^-?\d[\d,]*(\.\d+)?%?$/.test(String(v))
@@ -57,7 +59,9 @@ export default function DataTable<T extends Record<string, any>>({
 
         {/* 바디 */}
         <tbody>
-          {loading
+          {error
+            ? renderRowMessage(`오류가 발생했습니다: ${error.message}`)
+            : loading
             ? renderRowMessage("실시간 잔고 업데이트 중...")
             : data.length === 0
             ? renderRowMessage(emptyMessage)
