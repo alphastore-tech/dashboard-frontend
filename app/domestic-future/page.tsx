@@ -107,12 +107,12 @@ export default function Page() {
 
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
-    const stockBalance =
+    const stockBalancePlusCash =
       data?.output2[0]?.tot_evlu_amt !== undefined
         ? Number(data?.output2[0]?.tot_evlu_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
-    const futureBalance =
+    const futureBalancePlusCash =
       futureData?.output2.prsm_dpast !== undefined
         ? Number(futureData?.output2.prsm_dpast).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
@@ -134,20 +134,33 @@ export default function Page() {
           ).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
+    const stockBalancePurchase =
+      data?.output2[0]?.pchs_amt_smtl_amt !== undefined
+        ? Number(data?.output2[0]?.pchs_amt_smtl_amt).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
+    const futureBalancePurchase =
+      futureData?.output2.pchs_amt_smtl !== undefined
+        ? Number(futureData?.output2.pchs_amt_smtl).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
+    const stockBalanceEvalPercent = 0.0;
+    const futureBalanceEvalPercent = 0.0;
+    const totalBalanceEvalPercent = 0.0;
     return [
-      { label: "주식 잔고 총평가금액(원)", value: stockBalance },
-      { label: "선물옵션 잔고 총평가금액(원)", value: futureBalance },
+      { label: "주식 잔고 총평가금액(원)", value: stockBalancePlusCash },
+      { label: "선물옵션 잔고 총평가금액(원)", value: futureBalancePlusCash },
       {
         label: "전체 평가손익(원)",
-        value: totalBalanceEval + "(" + 0.0 + "%)",
+        value: totalBalanceEval + " (" + totalBalanceEvalPercent + "%)",
       },
       {
         label: "주식 잔고 평가손익(원)",
-        value: stockBalanceEval + "(" + 0.0 + "%)",
+        value: stockBalanceEval + " (" + stockBalanceEvalPercent + "%)",
       },
       {
         label: "선물옵션 잔고 평가손익(원)",
-        value: futureBalanceEval + "(" + 0.0 + "%)",
+        value: futureBalanceEval + " (" + futureBalanceEvalPercent + "%)",
       },
     ];
   }, [data, futureData]);
