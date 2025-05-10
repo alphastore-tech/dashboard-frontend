@@ -107,22 +107,48 @@ export default function Page() {
 
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
-    const totEval =
+    const stockBalance =
       data?.output2[0]?.tot_evlu_amt !== undefined
         ? Number(data?.output2[0]?.tot_evlu_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
-    const futureTotEval =
+    const futureBalance =
       futureData?.output2.prsm_dpast !== undefined
         ? Number(futureData?.output2.prsm_dpast).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
+    const stockBalanceEval =
+      data?.output2[0]?.evlu_pfls_smtl_amt !== undefined
+        ? Number(data?.output2[0]?.evlu_pfls_smtl_amt).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
+    const futureBalanceEval =
+      futureData?.output2.evlu_pfls_amt_smtl !== undefined
+        ? Number(futureData?.output2.evlu_pfls_amt_smtl).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
+    const totalBalanceEval =
+      Number(stockBalanceEval) + Number(futureBalanceEval) !== undefined
+        ? (
+            Number(stockBalanceEval) + Number(futureBalanceEval)
+          ).toLocaleString()
+        : "—"; // 아직 로딩 중이거나 값이 없을 때
+
     return [
-      { label: "주식 잔고 총평가금액(원)", value: totEval },
-      { label: "선물옵션 잔고 총평가금액(원)", value: futureTotEval },
-      { label: "Return", value: "8.5%" },
-      { label: "Sharpe Ratio", value: "1.25" },
-      { label: "MDD", value: "-10.2%" },
+      { label: "주식 잔고 총평가금액(원)", value: stockBalance },
+      { label: "선물옵션 잔고 총평가금액(원)", value: futureBalance },
+      {
+        label: "전체 평가손익(원)",
+        value: totalBalanceEval + "(" + 0.0 + "%)",
+      },
+      {
+        label: "주식 잔고 평가손익(원)",
+        value: stockBalanceEval + "(" + 0.0 + "%)",
+      },
+      {
+        label: "선물옵션 잔고 평가손익(원)",
+        value: futureBalanceEval + "(" + 0.0 + "%)",
+      },
     ];
   }, [data, futureData]);
 

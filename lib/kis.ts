@@ -110,6 +110,7 @@ export interface BalanceResponse {
   }[],
   output2: {
     tot_evlu_amt: string // 총평가금액
+    evlu_pfls_smtl_amt: string // 총평가손익금액
   }[]
 }
 
@@ -185,6 +186,7 @@ export interface FoBalanceResponse {
   output2: {
     prsm_dpast: string    // 추정예탁자산
     prsm_dpast_amt: string    // 추정예탁자산금액
+    evlu_pfls_amt_smtl: string // 총평가손익금액
   }
 }
 
