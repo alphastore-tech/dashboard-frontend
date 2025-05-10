@@ -5,8 +5,8 @@ import { fetchBalance } from '@/lib/kis'
 export async function GET() {
   try {
     const data = await fetchBalance({
-      cano: process.env.KIS_CANO!,
-      acntPrdtCd: process.env.KIS_ACNT_PRDT_CD!,
+      cano: process.env.NEXT_PUBLIC_KIS_CANO!,
+      acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
     })
     return NextResponse.json(data, { status: 200 })
   } catch (err: any) {

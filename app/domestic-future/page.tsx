@@ -54,6 +54,16 @@ export default function Page() {
     }));
   }
 
+  let futurePositions = [];
+  if (futureData && futureData.output1) {
+    futurePositions = futureData.output1.map((o: any) => ({
+      symbol: o.prdt_name,
+      qty: Number(o.hldg_qty),
+      avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
+      plPercent: o.evlu_pfls_rt + "%",
+    }));
+  }
+
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
     const totEval =
@@ -92,7 +102,7 @@ export default function Page() {
         <p className="p-8 text-red-600">API 오류: {error.message}</p>
       ) : (
         <DataTable
-          title="Current Positions"
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
           columns={[
             { header: "종목", accessor: "symbol" },
             { header: "수량", accessor: "qty", align: "right" },
@@ -101,6 +111,23 @@ export default function Page() {
           ]}
           data={positions}
           loading={isLoading && !data}
+          emptyMessage="보유 종목이 없습니다."
+        />
+      )}
+      {/* 실시간 포지션 테이블 (API) */}
+      {error ? (
+        <p className="p-8 text-red-600">API 오류: {error.message}</p>
+      ) : (
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
+          columns={[
+            { header: "종목", accessor: "symbol" },
+            { header: "수량", accessor: "qty", align: "right" },
+            { header: "평균단가", accessor: "avgPrice", align: "right" },
+            { header: "손익(%)", accessor: "plPercent", align: "right" },
+          ]}
+          data={futurePositions}
+          loading={futureLoading && !futureData}
           emptyMessage="보유 종목이 없습니다."
         />
       )}
