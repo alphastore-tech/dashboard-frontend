@@ -180,4 +180,85 @@ export interface FoBalanceResponse {
   }
 }
 
+/** 주식 - 일별 주문·체결 내역 */
+export async function fetchDailyOrders({
+  cano,
+  acntPrdtCd,
+  startDate,
+  endDate,
+  nextFk = '',
+  nextNk = '',
+}: {
+  cano: string
+  acntPrdtCd: string
+  startDate: string  // YYYYMMDD
+  endDate: string    // YYYYMMDD
+  nextFk?: string    // 연속조회 검색조건
+  nextNk?: string
+}) {
+  const q = qs.stringify({
+    CANO: cano,
+    ACNT_PRDT_CD: acntPrdtCd,
+    INQR_STRT_DT: startDate,
+    INQR_END_DT: endDate,
+    SLL_BUY_DVSN_CD: '00',
+    PDNO: '',
+    ORD_GNO_BRNO: '',
+    ODNO: '',
+    CCLD_DVSN: '00',
+    INQR_DVSN: '00',
+    INQR_DVSN_1: '',
+    INQR_DVSN_3: '00',
+    EXCG_ID_DVSN_CD: 'KRX',
+    CTX_AREA_FK100: nextFk,
+    CTX_AREA_NK100: nextNk,
+  })
+
+  const accessToken = await getAccessToken()
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${accessToken}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'TTTC0081R',       // 실전 3개월 이내 / 모의 'VTTC0081R'
+        custtype: 'P',
+      },
+      cache: 'no-store',
+    },
+  )
+
+  if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`)
+  return res.json() as Promise<OrderHistoryResponse>
+}
+
+export interface OrderRow {
+  ord_dt: string
+  pdno: string
+  prdt_name: string
+  ord_qty: string
+  ord_unpr: string
+  tot_ccld_qty: string
+  avg_prvs: string
+  cncl_yn: string
+}
+
+export interface OrderHistoryResponse {
+  rt_cd: string
+  msg_cd: string
+  msg1: string
+  output1: OrderRow[]
+  output2: {
+    tot_ord_qty: string
+    tot_ccld_qty: string
+    tot_ccld_amt: string
+  }
+  ctx_area_fk100: string
+  ctx_area_nk100: string
+}
+
 

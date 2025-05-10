@@ -4,6 +4,7 @@ import StatCard from "@/components/StatCard";
 import DataTable from "@/components/DataTable";
 import useBalance from "@/components/useBalance";
 import useFoBalance from "@/components/useFoBalance";
+import useOrders from "@/components/useOrders";
 import { useMemo } from "react";
 
 const orders = [
@@ -43,6 +44,11 @@ export default function Page() {
     isLoading: futureLoading,
     error: futureError,
   } = useFoBalance();
+  const {
+    data: orderData,
+    isLoading: orderLoading,
+    error: orderError,
+  } = useOrders();
 
   let positions = [];
   if (data && data.output1) {
@@ -64,6 +70,17 @@ export default function Page() {
     }));
   }
 
+  const orders =
+    orderData?.output1?.map((o: any) => ({
+      date: o.ord_dt.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
+      symbol: o.prdt_name,
+      side: o.sll_buy_dvsn_cd === "02" ? "BUY" : "SELL",
+      qty: Number(o.ord_qty),
+      filledQty: Number(o.tot_ccld_qty),
+      avgPrice: Number(o.avg_prvs).toLocaleString(),
+      status: o.cncl_yn === "Y" ? "Canceled" : "Filled",
+    })) ?? [];
+
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
     const totEval =
@@ -82,7 +99,6 @@ export default function Page() {
       { label: "Return", value: "8.5%" },
       { label: "Sharpe Ratio", value: "1.25" },
       { label: "MDD", value: "-10.2%" },
-      { label: "Volatility", value: "12.8%" },
     ];
   }, [data, futureData]);
 
@@ -128,17 +144,20 @@ export default function Page() {
 
       {/* 주문내역 (Mock Data) */}
       <DataTable
-        title="Order History"
+        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
-          { header: "Order #", accessor: "order" },
-          { header: "Status", accessor: "status" },
-          { header: "Symbol", accessor: "symbol" },
-          { header: "Order Price", accessor: "orderPrice" },
-          { header: "Filled Price", accessor: "filledPrice" },
-          { header: "Qty", accessor: "qty" },
-          { header: "Date", accessor: "date" },
+          { header: "일자", accessor: "date" },
+          { header: "종목", accessor: "symbol" },
+          { header: "매수/매도", accessor: "side", align: "center" },
+          { header: "주문수량", accessor: "qty", align: "right" },
+          { header: "체결수량", accessor: "filledQty", align: "right" },
+          { header: "평균단가", accessor: "avgPrice", align: "right" },
+          { header: "체결상태", accessor: "status" },
         ]}
         data={orders}
+        loading={orderLoading && !orderData}
+        emptyMessage="금일 체결 내역이 없습니다."
+        error={orderError}
       />
     </main>
   );
