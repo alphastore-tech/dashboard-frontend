@@ -25,7 +25,7 @@ const futureOrders = [
     주문번호: 2003,
     호가유형코드: "01",
     상품번호: "373220",
-    상품명: "LG에너지솔루션 F06",
+    종목: "LG에너지솔루션 F06",
     매수매도: "매도",
     주문수량: 1,
     총체결수량: 0,
@@ -38,7 +38,7 @@ const futureOrders = [
     주문번호: 2002,
     호가유형코드: "00",
     상품번호: "035420",
-    상품명: "NAVER F06",
+    종목: "NAVER F06",
     매수매도: "매수",
     주문수량: 3,
     총체결수량: 3,
@@ -134,19 +134,30 @@ export default function Page() {
           ).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
-    const stockBalancePurchase =
-      data?.output2[0]?.pchs_amt_smtl_amt !== undefined
-        ? Number(data?.output2[0]?.pchs_amt_smtl_amt).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+    const stockBalanceEvalPercent =
+      data?.output2[0]?.evlu_pfls_smtl_amt !== undefined &&
+      data?.output2[0]?.pchs_amt_smtl_amt !== undefined &&
+      Number(data?.output2[0]?.pchs_amt_smtl_amt) !== 0
+        ? (
+            (Number(data.output2[0].evlu_pfls_smtl_amt) /
+              Number(data.output2[0].pchs_amt_smtl_amt)) *
+            100
+          ).toFixed(2)
+        : "—";
 
-    const futureBalancePurchase =
-      futureData?.output2.pchs_amt_smtl !== undefined
-        ? Number(futureData?.output2.pchs_amt_smtl).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+    const futureBalanceEvalPercent =
+      futureData?.output2.evlu_pfls_amt_smtl !== undefined &&
+      futureData?.output2.pchs_amt_smtl !== undefined &&
+      Number(futureData.output2.pchs_amt_smtl) !== 0
+        ? (
+            (Number(futureData.output2.evlu_pfls_amt_smtl) /
+              Number(futureData.output2.pchs_amt_smtl)) *
+            100
+          ).toFixed(2)
+        : "—";
 
-    const stockBalanceEvalPercent = 0.0;
-    const futureBalanceEvalPercent = 0.0;
     const totalBalanceEvalPercent = 0.0;
+
     return [
       { label: "주식 잔고 총평가금액(원)", value: stockBalancePlusCash },
       { label: "선물옵션 잔고 총평가금액(원)", value: futureBalancePlusCash },
