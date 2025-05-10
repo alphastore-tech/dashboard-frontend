@@ -7,33 +7,42 @@ import useFoBalance from "@/components/useFoBalance";
 import useOrders from "@/components/useOrders";
 import { useMemo } from "react";
 
-const orders = [
+const futureOrders = [
   {
-    order: 1004,
-    status: "Filled",
-    symbol: "AAPL",
-    orderPrice: "150.5",
-    filledPrice: "150.75",
-    qty: 10,
-    date: "01/04/2024",
+    주문번호: 2004,
+    호가유형코드: "00",
+    상품번호: "005930",
+    상품명: "삼성전자 F06",
+    주문수량: 2,
+    총체결수량: 2,
+    주문가격: "75,000",
+    평균체결가격: "75,100",
+    총체결금액: "150,200",
+    주문시각: "2024/04/01 09:15:00",
   },
   {
-    order: 1003,
-    status: "Canceled",
-    symbol: "ES",
-    orderPrice: "4,150.00",
-    filledPrice: "3",
-    qty: 3,
-    date: "01/03/2024",
+    주문번호: 2003,
+    호가유형코드: "01",
+    상품번호: "373220",
+    상품명: "LG에너지솔루션 F06",
+    주문수량: 1,
+    총체결수량: 0,
+    주문가격: "420,000",
+    평균체결가격: "422,000",
+    총체결금액: "0",
+    주문시각: "2024/03/28 10:05:00",
   },
   {
-    order: 1002,
-    status: "Filled",
-    symbol: "CL",
-    orderPrice: "70.00",
-    filledPrice: "70.30",
-    qty: 2,
-    date: "01/02/2024",
+    주문번호: 2002,
+    호가유형코드: "00",
+    상품번호: "035420",
+    상품명: "NAVER F06",
+    주문수량: 3,
+    총체결수량: 3,
+    주문가격: "210,000",
+    평균체결가격: "210,500",
+    총체결금액: "631,500",
+    주문시각: "2024/03/25 13:22:00",
   },
 ];
 
@@ -158,6 +167,24 @@ export default function Page() {
         loading={orderLoading && !orderData}
         emptyMessage="금일 체결 내역이 없습니다."
         error={orderError}
+      />
+
+      {/* 주문내역 (Mock Data) */}
+      <DataTable
+        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
+        columns={[
+          { header: "주문번호", accessor: "주문번호" },
+          { header: "호가유형코드", accessor: "호가유형코드" },
+          { header: "상품번호", accessor: "상품번호" },
+          { header: "상품명", accessor: "상품명" },
+          { header: "주문수량", accessor: "주문수량" },
+          { header: "총체결수량", accessor: "총체결수량" },
+          { header: "주문가격", accessor: "주문가격" },
+          { header: "평균체결가격", accessor: "평균체결가격" },
+          { header: "총체결금액", accessor: "총체결금액" },
+          { header: "주문시각", accessor: "주문시각" },
+        ]}
+        data={futureOrders}
       />
     </main>
   );
