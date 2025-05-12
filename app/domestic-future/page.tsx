@@ -108,23 +108,23 @@ export default function Page() {
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
     const stockBalancePlusCash =
-      data?.output2[0]?.tot_evlu_amt !== undefined
-        ? Number(data?.output2[0]?.tot_evlu_amt).toLocaleString()
+      data?.output2?.[0]?.tot_evlu_amt !== undefined
+        ? Number(data?.output2?.[0].tot_evlu_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const futureBalancePlusCash =
-      futureData?.output2.prsm_dpast !== undefined
-        ? Number(futureData?.output2.prsm_dpast).toLocaleString()
+      futureData?.output2?.prsm_dpast !== undefined
+        ? Number(futureData?.output2?.prsm_dpast).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const stockBalanceEval =
-      data?.output2[0]?.evlu_pfls_smtl_amt !== undefined
-        ? Number(data?.output2[0]?.evlu_pfls_smtl_amt).toLocaleString()
+      data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined
+        ? Number(data?.output2?.[0]?.evlu_pfls_smtl_amt).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const futureBalanceEval =
-      futureData?.output2.evlu_pfls_amt_smtl !== undefined
-        ? Number(futureData?.output2.evlu_pfls_amt_smtl).toLocaleString()
+      futureData?.output2?.evlu_pfls_amt_smtl !== undefined
+        ? Number(futureData?.output2?.evlu_pfls_amt_smtl).toLocaleString()
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const totalBalanceEval =
@@ -135,23 +135,23 @@ export default function Page() {
         : "—"; // 아직 로딩 중이거나 값이 없을 때
 
     const stockBalanceEvalPercent =
-      data?.output2[0]?.evlu_pfls_smtl_amt !== undefined &&
-      data?.output2[0]?.pchs_amt_smtl_amt !== undefined &&
-      Number(data?.output2[0]?.pchs_amt_smtl_amt) !== 0
+      data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined &&
+      data?.output2?.[0]?.pchs_amt_smtl_amt !== undefined &&
+      Number(data?.output2?.[0]?.pchs_amt_smtl_amt) !== 0
         ? (
-            (Number(data.output2[0].evlu_pfls_smtl_amt) /
-              Number(data.output2[0].pchs_amt_smtl_amt)) *
+            (Number(data?.output2?.[0]?.evlu_pfls_smtl_amt) /
+              Number(data?.output2?.[0]?.pchs_amt_smtl_amt)) *
             100
           ).toFixed(2)
         : "—";
 
     const futureBalanceEvalPercent =
-      futureData?.output2.evlu_pfls_amt_smtl !== undefined &&
-      futureData?.output2.pchs_amt_smtl !== undefined &&
-      Number(futureData.output2.pchs_amt_smtl) !== 0
+      futureData?.output2?.evlu_pfls_amt_smtl !== undefined &&
+      futureData?.output2?.pchs_amt_smtl !== undefined &&
+      Number(futureData?.output2?.pchs_amt_smtl) !== 0
         ? (
-            (Number(futureData.output2.evlu_pfls_amt_smtl) /
-              Number(futureData.output2.pchs_amt_smtl)) *
+            (Number(futureData?.output2?.evlu_pfls_amt_smtl) /
+              Number(futureData?.output2?.pchs_amt_smtl)) *
             100
           ).toFixed(2)
         : "—";
