@@ -70,10 +70,25 @@ export default function DataTable<T extends Record<string, any>>({
                   {columns.map(({ accessor, align }, i) => {
                     const v = row[accessor];
                     const finalAlign = align ?? defaultAlign(v);
+
+                    // 색상 결정: plAmount, plPercent에 한해 음수면 파랑, 양수면 빨강
+                    let textColor = "";
+                    if (accessor === "plAmount" || accessor === "plPercent") {
+                      // 숫자 추출 (문자열에 +, -, %, , 등 있을 수 있음)
+                      let num =
+                        typeof v === "number"
+                          ? v
+                          : Number(String(v).replace(/[^-0-9.]/g, ""));
+                      if (!isNaN(num)) {
+                        if (num < 0) textColor = "text-blue-700";
+                        else if (num > 0) textColor = "text-red-700";
+                      }
+                    }
+
                     return (
                       <td
                         key={i}
-                        className={`px-6 py-2 whitespace-nowrap text-${finalAlign}`}
+                        className={`px-6 py-2 whitespace-nowrap text-${finalAlign} ${textColor}`}
                       >
                         {v}
                       </td>
