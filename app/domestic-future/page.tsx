@@ -107,33 +107,35 @@ export default function Page() {
 
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
+    // 원본 숫자값도 따로 저장
     const stockBalancePlusCash =
       data?.output2?.[0]?.tot_evlu_amt !== undefined
         ? Number(data?.output2?.[0].tot_evlu_amt).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+        : "?"; // 아직 로딩 중이거나 값이 없을 때
 
     const futureBalancePlusCash =
       futureData?.output2?.prsm_dpast !== undefined
         ? Number(futureData?.output2?.prsm_dpast).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+        : "?"; // 아직 로딩 중이거나 값이 없을 때
 
-    const stockBalanceEval =
+    // 평가손익 원본값
+    const stockBalanceEvalRaw =
       data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined
-        ? Number(data?.output2?.[0]?.evlu_pfls_smtl_amt).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+        ? Number(data?.output2?.[0]?.evlu_pfls_smtl_amt)
+        : undefined;
 
-    const futureBalanceEval =
+    const futureBalanceEvalRaw =
       futureData?.output2?.evlu_pfls_amt_smtl !== undefined
-        ? Number(futureData?.output2?.evlu_pfls_amt_smtl).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+        ? Number(futureData?.output2?.evlu_pfls_amt_smtl)
+        : undefined;
 
-    const totalBalanceEval =
-      Number(stockBalanceEval) + Number(futureBalanceEval) !== undefined
-        ? (
-            Number(stockBalanceEval) + Number(futureBalanceEval)
-          ).toLocaleString()
-        : "—"; // 아직 로딩 중이거나 값이 없을 때
+    // 전체 평가손익 원본값
+    const totalBalanceEvalRaw =
+      stockBalanceEvalRaw !== undefined && futureBalanceEvalRaw !== undefined
+        ? stockBalanceEvalRaw + futureBalanceEvalRaw
+        : undefined;
 
+    // 수익률 계산
     const stockBalanceEvalPercent =
       data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined &&
       data?.output2?.[0]?.pchs_amt_smtl_amt !== undefined &&
@@ -143,7 +145,7 @@ export default function Page() {
               Number(data?.output2?.[0]?.pchs_amt_smtl_amt)) *
             100
           ).toFixed(2)
-        : "—";
+        : "?";
 
     const futureBalanceEvalPercent =
       futureData?.output2?.evlu_pfls_amt_smtl !== undefined &&
@@ -154,24 +156,57 @@ export default function Page() {
               Number(futureData?.output2?.pchs_amt_smtl)) *
             100
           ).toFixed(2)
-        : "—";
+        : "?";
 
+    // 전체 평가손익률은 0.0으로 남겨둠
     const totalBalanceEvalPercent = 0.0;
+
+    // + 붙이기 함수
+    function addPlusSign(val: number | undefined) {
+      if (val === undefined) return "?";
+      if (val > 0) return "+" + val.toLocaleString();
+      return val.toLocaleString();
+    }
+    function addPlusSignPercent(val: string | number) {
+      if (val === "?") return "?";
+      const num = Number(val);
+      if (isNaN(num)) return val + "%";
+      if (num > 0) return "+" + num.toFixed(2) + "%";
+      return num.toFixed(2) + "%";
+    }
 
     return [
       { label: "주식 잔고 총평가금액(원)", value: stockBalancePlusCash },
       { label: "선물옵션 잔고 총평가금액(원)", value: futureBalancePlusCash },
       {
         label: "전체 평가손익(원)",
-        value: totalBalanceEval + " (" + totalBalanceEvalPercent + "%)",
+        value:
+          (totalBalanceEvalRaw !== undefined
+            ? addPlusSign(totalBalanceEvalRaw)
+            : "?") +
+          " (" +
+          addPlusSignPercent(totalBalanceEvalPercent) +
+          ")",
       },
       {
         label: "주식 잔고 평가손익(원)",
-        value: stockBalanceEval + " (" + stockBalanceEvalPercent + "%)",
+        value:
+          (stockBalanceEvalRaw !== undefined
+            ? addPlusSign(stockBalanceEvalRaw)
+            : "?") +
+          " (" +
+          addPlusSignPercent(stockBalanceEvalPercent) +
+          ")",
       },
       {
         label: "선물옵션 잔고 평가손익(원)",
-        value: futureBalanceEval + " (" + futureBalanceEvalPercent + "%)",
+        value:
+          (futureBalanceEvalRaw !== undefined
+            ? addPlusSign(futureBalanceEvalRaw)
+            : "?") +
+          " (" +
+          addPlusSignPercent(futureBalanceEvalPercent) +
+          ")",
       },
     ];
   }, [data, futureData]);
