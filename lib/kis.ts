@@ -244,6 +244,8 @@ export async function fetchDailyOrders({
     },
   )
 
+  console.log(res);
+
   if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`)
   return res.json() as Promise<OrderHistoryResponse>
 }

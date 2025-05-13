@@ -6,8 +6,8 @@ export async function GET() {
   try {
     const today = dayjs().format('YYYYMMDD')
     const data = await fetchDailyOrders({
-      cano: process.env.KIS_CANO!,
-      acntPrdtCd: process.env.KIS_ACNT_PRDT_CD!,
+      cano: process.env.NEXT_PUBLIC_KIS_CANO!,
+      acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
       startDate: today,
       endDate: today,
     })
