@@ -276,4 +276,80 @@ export interface OrderHistoryResponse {
   ctx_area_nk100: string
 }
 
+export async function fetchFoOrders({
+  cano,
+  acntPrdtCd,
+  startDate,
+  endDate,
+  nextFk = '',
+  nextNk = '',
+}: {
+  cano: string
+  acntPrdtCd: string
+  startDate: string   // YYYYMMDD
+  endDate: string     // YYYYMMDD
+  nextFk?: string
+  nextNk?: string
+}) {
+  const q = qs.stringify({
+    CANO: cano,
+    ACNT_PRDT_CD: acntPrdtCd,
+    STRT_ORD_DT: startDate,
+    END_ORD_DT: endDate,
+    SLL_BUY_DVSN_CD: '00',
+    CCLD_NCCS_DVSN: '00',
+    SORT_SQN: 'DS',            // 역순
+    STRT_ODNO: '',
+    PDNO: '',
+    MKET_ID_CD: '',
+    CTX_AREA_FK200: nextFk,
+    CTX_AREA_NK200: nextNk,
+  })
+
+  const token = await getAccessToken()
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${token}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'VTTO5201R',     // 실전: TTTO5201R
+        custtype: 'P',
+      },
+      cache: 'no-store',
+    },
+  )
+
+  console.log(res);
+
+  if (!res.ok) throw new Error(`FO orders HTTP ${res.status}`)
+  return res.json() as Promise<FoOrderResponse>
+}
+
+export interface FoOrderResponse {
+  output1: {
+    ord_dt: string
+    prdt_name: string
+    sll_buy_dvsn_cd: string
+    ord_qty: string
+    tot_ccld_qty: string
+    avg_idx: string
+  }[]
+  output2: {
+    tot_ord_qty: string
+    tot_ccld_qty_smtl: string
+    tot_ccld_amt_smtl: string
+  }
+  ctx_area_fk200: string
+  ctx_area_nk200: string
+  rt_cd: string
+  msg_cd: string
+  msg1: string
+}
+
+
 

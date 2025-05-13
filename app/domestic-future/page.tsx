@@ -5,49 +5,8 @@ import DataTable from "@/components/DataTable";
 import useBalance from "@/components/useBalance";
 import useFoBalance from "@/components/useFoBalance";
 import useOrders from "@/components/useOrders";
+import useFoOrders from "@/components/useFoOrders";
 import { useMemo } from "react";
-
-const futureOrders = [
-  {
-    주문번호: 2004,
-    호가유형코드: "00",
-    상품번호: "005930",
-    종목: "삼성전자 F06",
-    매수매도: "매수",
-    주문수량: 2,
-    총체결수량: 2,
-    주문가격: "75,000",
-    평균체결가격: "75,100",
-    총체결금액: "150,200",
-    주문시각: "2024/04/01 09:15:00",
-  },
-  {
-    주문번호: 2003,
-    호가유형코드: "01",
-    상품번호: "373220",
-    종목: "LG에너지솔루션 F06",
-    매수매도: "매도",
-    주문수량: 1,
-    총체결수량: 0,
-    주문가격: "420,000",
-    평균체결가격: "422,000",
-    총체결금액: "0",
-    주문시각: "2024/03/28 10:05:00",
-  },
-  {
-    주문번호: 2002,
-    호가유형코드: "00",
-    상품번호: "035420",
-    종목: "NAVER F06",
-    매수매도: "매수",
-    주문수량: 3,
-    총체결수량: 3,
-    주문가격: "210,000",
-    평균체결가격: "210,500",
-    총체결금액: "631,500",
-    주문시각: "2024/03/25 13:22:00",
-  },
-];
 
 export default function Page() {
   const { data, isLoading, error } = useBalance();
@@ -61,6 +20,12 @@ export default function Page() {
     isLoading: orderLoading,
     error: orderError,
   } = useOrders();
+
+  const {
+    data: foOrderData,
+    isLoading: foLoading,
+    error: foError,
+  } = useFoOrders();
 
   let positions = [];
   if (data && data.output1) {
@@ -103,6 +68,19 @@ export default function Page() {
       orderPrice: Number(o.ord_unpr).toLocaleString(),
       avgPrice: Number(o.avg_prvs).toLocaleString(),
       totalAmount: Number(o.tot_ccld_amt).toLocaleString(),
+    })) ?? [];
+
+  const foOrders =
+    foOrderData?.output1?.map((o: any) => ({
+      주문번호: o.odno,
+      주문시각: o.ord_tmd.replace(/(\d{2})(\d{2})(\d{2})/, "$1:$2:$3"),
+      종목: o.prdt_name,
+      매수매도: o.sll_buy_dvsn_cd === "02" ? "매수" : "매도",
+      주문수량: Number(o.ord_qty).toLocaleString(),
+      총체결수량: Number(o.tot_ccld_qty).toLocaleString(),
+      주문가격: Number(o.ord_idx).toLocaleString(),
+      평균체결가격: Number(o.avg_idx).toLocaleString(),
+      총체결금액: Number(o.tot_ccld_amt).toLocaleString(),
     })) ?? [];
 
   /* --------- KPI 카드 데이터 --------- */
@@ -288,14 +266,17 @@ export default function Page() {
           { header: "주문번호", accessor: "주문번호" },
           { header: "주문시각", accessor: "주문시각" },
           { header: "종목", accessor: "종목" },
-          { header: "매수/매도", accessor: "매수매도" },
-          { header: "주문수량", accessor: "주문수량" },
-          { header: "총체결수량", accessor: "총체결수량" },
-          { header: "주문가격", accessor: "주문가격" },
-          { header: "평균체결가격", accessor: "평균체결가격" },
-          { header: "총체결금액", accessor: "총체결금액" },
+          { header: "매수/매도", accessor: "매수매도", align: "center" },
+          { header: "주문수량", accessor: "주문수량", align: "right" },
+          { header: "총체결수량", accessor: "총체결수량", align: "right" },
+          { header: "주문가격", accessor: "주문가격", align: "right" },
+          { header: "평균체결가격", accessor: "평균체결가격", align: "right" },
+          { header: "총체결금액", accessor: "총체결금액", align: "right" },
         ]}
-        data={futureOrders}
+        data={foOrders}
+        loading={foLoading && !foOrderData}
+        emptyMessage="금일 체결 내역이 없습니다."
+        error={foError}
       />
     </main>
   );
