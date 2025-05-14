@@ -179,7 +179,7 @@ export interface FoBalanceResponse {
     sll_buy_dvsn_name: string // 매수/매도
     cblc_qty: string      // 잔고수량
     ccld_avg_unpr1: string// 평균단가
-    excc_unpr: string // 정산단가
+    idx_clpr: string // 정산단가
     pchs_amt: string        // 매입금액
     evlu_amt: string       // 평가금액
     evlu_pfls_amt: string  // 평가손익금액
@@ -334,7 +334,7 @@ export interface FoOrderResponse {
   output1: {
     ord_dt: string
     prdt_name: string
-    sll_buy_dvsn_cd: string
+    trad_dvsn_name: string
     ord_qty: string
     tot_ccld_qty: string
     avg_idx: string

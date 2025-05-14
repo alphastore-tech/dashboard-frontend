@@ -29,31 +29,34 @@ export default function Page() {
 
   let positions = [];
   if (data && data.output1) {
-    positions = data.output1.map((o: any) => ({
-      symbol: o.prdt_name,
-      side: o.trad_dvsn_name,
-      qty: Number(o.hldg_qty),
-      avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
-      currentPrice: Number(o.prpr).toLocaleString(),
-      purchaseAmount: Number(o.pchs_amt).toLocaleString(),
-      evalAmount: Number(o.evlu_amt).toLocaleString(),
-      plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
-      plPercent: o.evlu_pfls_rt + "%",
-    }));
+    positions = data.output1
+      .map((o: any) => ({
+        symbol: o.prdt_name,
+        side: o.trad_dvsn_name,
+        qty: Number(o.hldg_qty),
+        avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
+        currentPrice: Number(o.prpr).toLocaleString(),
+        purchaseAmount: Number(o.pchs_amt).toLocaleString(),
+        evalAmount: Number(o.evlu_amt).toLocaleString(),
+        plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
+        plPercent: o.evlu_pfls_rt + "%",
+      }))
+      .filter((o: any) => o.qty > 0);
   }
 
   let futurePositions = [];
   if (futureData && futureData.output1) {
     futurePositions = futureData.output1.map((o: any) => ({
       symbol: o.prdt_name,
-      side: o.trad_dvsn_name,
-      qty: Number(o.hldg_qty),
-      avgPrice: Number(o.pchs_avg_pric).toLocaleString(),
-      currentPrice: Number(o.prpr).toLocaleString(),
+      side: o.sll_buy_dvsn_name,
+      qty: Number(o.cblc_qty),
+      avgPrice: Number(o.ccld_avg_unpr1).toLocaleString(),
+      currentPrice: Number(o.idx_clpr).toLocaleString(),
       purchaseAmount: Number(o.pchs_amt).toLocaleString(),
       evalAmount: Number(o.evlu_amt).toLocaleString(),
       plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
-      plPercent: ((o.plAmount / o.purchaseAmount) * 100).toFixed(2) + "%",
+      plPercent:
+        ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) + "%",
     }));
   }
 
@@ -73,14 +76,14 @@ export default function Page() {
   const foOrders =
     foOrderData?.output1?.map((o: any) => ({
       주문번호: o.odno,
-      주문시각: o.ord_tmd.replace(/(\d{2})(\d{2})(\d{2})/, "$1:$2:$3"),
+      주문시각: o.ord_tmd,
       종목: o.prdt_name,
-      매수매도: o.sll_buy_dvsn_cd === "02" ? "매수" : "매도",
+      매수매도: o.trad_dvsn_name,
       주문수량: Number(o.ord_qty).toLocaleString(),
       총체결수량: Number(o.tot_ccld_qty).toLocaleString(),
       주문가격: Number(o.ord_idx).toLocaleString(),
       평균체결가격: Number(o.avg_idx).toLocaleString(),
-      총체결금액: Number(o.tot_ccld_amt).toLocaleString(),
+      총체결금액: "?",
     })) ?? [];
 
   /* --------- KPI 카드 데이터 --------- */
