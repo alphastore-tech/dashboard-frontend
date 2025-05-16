@@ -75,15 +75,15 @@ export default function Page() {
 
   const foOrders =
     foOrderData?.output1?.map((o: any) => ({
-      orderNo: o.odno,
-      주문시각: o.ord_tmd,
+      주문번호: o.odno,
+      주문시각: o.ord_dt,
       종목: o.prdt_name,
       매수매도: o.trad_dvsn_name,
       주문수량: Number(o.ord_qty).toLocaleString(),
       총체결수량: Number(o.tot_ccld_qty).toLocaleString(),
       주문가격: Number(o.ord_idx).toLocaleString(),
       평균체결가격: Number(o.avg_idx).toLocaleString(),
-      총체결금액: "?",
+      총체결금액: Number(o.tot_ccld_amt).toLocaleString(),
     })) ?? [];
 
   /* --------- KPI 카드 데이터 --------- */
@@ -202,7 +202,6 @@ export default function Page() {
         error={futureError}
       />
 
-      {/* 주문내역 (Mock Data) */}
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
@@ -222,11 +221,10 @@ export default function Page() {
         error={orderError}
       />
 
-      {/* 주문내역 (Mock Data) */}
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
         columns={[
-          { header: "주문번호", accessor: "orderNo" },
+          { header: "주문번호", accessor: "주문번호" },
           { header: "주문시각", accessor: "주문시각" },
           { header: "종목", accessor: "종목" },
           { header: "매수/매도", accessor: "매수매도", align: "center" },

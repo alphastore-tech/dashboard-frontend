@@ -317,7 +317,7 @@ export async function fetchFoOrders({
         authorization: `Bearer ${token}`,
         appkey: KIS_APP_KEY,
         appsecret: KIS_APP_SECRET,
-        tr_id: 'VTTO5201R',     // 실전: TTTO5201R
+        tr_id: 'TTTO5201R',
         custtype: 'P',
       },
       cache: 'no-store',
@@ -338,6 +338,7 @@ export interface FoOrderResponse {
     ord_qty: string
     tot_ccld_qty: string
     avg_idx: string
+    tot_ccld_amt: string
   }[]
   output2: {
     tot_ord_qty: string
