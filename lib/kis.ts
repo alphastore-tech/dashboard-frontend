@@ -1,21 +1,32 @@
 /* lib/kis.ts */
 import qs from 'querystring'
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 const {
   KIS_APP_KEY,
   KIS_APP_SECRET,
   KIS_DOMAIN,
+  SECRET_ID,
 } = process.env as Record<string, string>
 
-/** access-token 캐시 (메모리) */
-let token = ''
-let expiresAt = 0
+let cachedToken: string | null = null;
+let expiresAt: number = 0;
 
-/** 1) 접근토큰 발급 (OAuth2 Client Credentials Grant) */
 export async function getAccessToken() {
-  // 토큰이 아직 유효하면 캐시된 토큰 반환
-  if (Date.now() < expiresAt && token) return token;
+  if (cachedToken && Date.now() < expiresAt) {
+    return cachedToken;
+  }
 
+  const sm = new SecretsManagerClient({ region: "ap-northeast-2" });
+  const { SecretString } = await sm.send(new GetSecretValueCommand({ SecretId: SECRET_ID }));
+
+  const secretData = JSON.parse(SecretString!);
+  cachedToken = secretData.access_token;
+  expiresAt = Date.now() + (secretData.expires_in) * 1000; // s > ms
+  return cachedToken;
+}
+
+export async function requestNewAccessToken() {
   const res = await fetch(`${KIS_DOMAIN}/oauth2/tokenP`, {
     method: 'POST',
     headers: {
@@ -39,13 +50,12 @@ export async function getAccessToken() {
     throw new Error(`Invalid token response: ${JSON.stringify(data)}`);
   }
 
-  token = data.access_token;
+  cachedToken = data.access_token;
   // expires_in: 초 단위, access_token_token_expired: "YYYY-MM-DD HH:mm:ss"
   // 6시간 이내 재호출 시 기존 토큰 리턴, 6시간 이후엔 새 토큰 발급됨
-  // expires_in은 24시간(86400초) 기준, 1시간(3600초) 여유 두고 만료 처리
-  expiresAt = Date.now() + (data.expires_in - 3600) * 1000;
+  expiresAt = Date.now() + (data.expires_in - 3600) * 1000; // 1시간 여유를 두고 만료 처리
 
-  return token;
+  return cachedToken;
 }
 
 /** 2) 주식 잔고 조회 */
