@@ -21,6 +21,7 @@ const strategies = [
   { id: "domestic-etfs", name: "국내 ETF" },
   { id: "follow-top-pick", name: "상한가 따라잡기" },
   { id: "statistical-arbitrage", name: "통계적 차익거래" },
+  { id: "ai-model-analysis", name: "AI 모델 공시 감성 분석" },
 ];
 
 export default function OverviewPage() {
