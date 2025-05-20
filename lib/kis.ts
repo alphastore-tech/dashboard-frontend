@@ -6,7 +6,7 @@ const {
   KIS_APP_KEY,
   KIS_APP_SECRET,
   KIS_DOMAIN,
-  SECRET_ID,
+  AWS_SECRET_ID,
 } = process.env as Record<string, string>
 
 let cachedToken: string | null = null;
@@ -18,7 +18,7 @@ export async function getAccessToken() {
   }
 
   const sm = new SecretsManagerClient({ region: "ap-northeast-2" });
-  const { SecretString } = await sm.send(new GetSecretValueCommand({ SecretId: SECRET_ID }));
+  const { SecretString } = await sm.send(new GetSecretValueCommand({ SecretId: AWS_SECRET_ID }));
 
   const secretData = JSON.parse(SecretString!);
   cachedToken = secretData.access_token;

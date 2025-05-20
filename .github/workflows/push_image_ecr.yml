@@ -9,6 +9,7 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: alphastore/alphastore-dashboard
 
 jobs:
   if_workflow_success:
@@ -47,15 +48,21 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
     
-    - name: Build and Push to AWS ECR
-      id: build_image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ steps.tag.outputs.tag }}
-        ECR_REPOSITORY: alphastore/alphastore-dashboard
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        echo "Push iamge : $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG and latest"
+    - name: Build & Push (Buildx + 캐시)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.tag }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+        build-args: |
+          KIS_APP_KEY=${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET=${{ secrets.KIS_APP_SECRET }}
+          KIS_DOMAIN=${{ secrets.KIS_DOMAIN }}
+          NEXT_PUBLIC_KIS_CANO=${{ secrets.NEXT_PUBLIC_KIS_CANO }}
+          NEXT_PUBLIC_KIS_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIS_ACNT_PRDT_CD }}
+          NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SECRET_ID=${{ secrets.AWS_SECRET_ID }}
