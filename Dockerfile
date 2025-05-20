@@ -6,7 +6,7 @@ WORKDIR /app
 
 # npm 캐시를 활용하기 위해 package.json과 lock 파일만 복사
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev                       # prod-deps만 설치
+RUN npm ci
 
 ###############################################################################
 # 2) build — 소스 추가 후 Next.js 빌드
