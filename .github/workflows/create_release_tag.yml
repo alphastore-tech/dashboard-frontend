@@ -23,7 +23,7 @@ jobs:
       id: previous_tag
       uses: WyriHaximus/github-action-get-previous-tag@v1
       with:
-        fallback: 1.0.0
+        fallback: 0.1.0
     
     - name: Get next minor tag-version
       id: minor_tag
