@@ -1,0 +1,21 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  app:
+    container_name: alphastore-dashboard
+    # ⬇︎ 두 가지 중 하나만 택하세요 ───────────────────────────────
+    build: .                                  # ① 로컬 빌드용 (Dockerfile 그대로 사용)
+      # image: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/next-dashboard:latest  # ② ECR 이미지 직접 사용 시
+    # ─────────────────────────────────────────────────────────
+    env_file:
+      - .env                  # KIS_APP_KEY=… 등 키-값을 여기에
+    ports:
+      - "3000:3000"           # 로컬 3000 → 컨테이너 3000
+    restart: unless-stopped   # 컨테이너 예외 종료 시 자동 재시작
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    # 로컬 개발 시 코드 핫리로드가 필요하면 아래 주석 해제
+    # volumes:
+    #   - .:/app               # 호스트 코드를 컨테이너에 마운트

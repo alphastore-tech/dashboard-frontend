@@ -76,118 +76,78 @@ export default function Page() {
   const foOrders =
     foOrderData?.output1?.map((o: any) => ({
       주문번호: o.odno,
-      주문시각: o.ord_tmd,
+      주문시각: o.ord_dt,
       종목: o.prdt_name,
       매수매도: o.trad_dvsn_name,
       주문수량: Number(o.ord_qty).toLocaleString(),
       총체결수량: Number(o.tot_ccld_qty).toLocaleString(),
       주문가격: Number(o.ord_idx).toLocaleString(),
       평균체결가격: Number(o.avg_idx).toLocaleString(),
-      총체결금액: "?",
+      총체결금액: Number(o.tot_ccld_amt).toLocaleString(),
     })) ?? [];
 
   /* --------- KPI 카드 데이터 --------- */
   const stats = useMemo(() => {
-    // 원본 숫자값도 따로 저장
-    const stockBalancePlusCash =
-      data?.output2?.[0]?.tot_evlu_amt !== undefined
-        ? Number(data?.output2?.[0].tot_evlu_amt).toLocaleString()
-        : "?"; // 아직 로딩 중이거나 값이 없을 때
+    const toNum = (v: unknown) => Number(v ?? NaN);
+    const addPlus = (n: number | undefined) =>
+      n === undefined ? "?" : (n > 0 ? "+" : "") + n.toLocaleString();
 
-    const futureBalancePlusCash =
-      futureData?.output2?.prsm_dpast !== undefined
-        ? Number(futureData?.output2?.prsm_dpast).toLocaleString()
-        : "?"; // 아직 로딩 중이거나 값이 없을 때
+    const addPlusPct = (v: string | number) => {
+      if (v === "?") return "?";
+      const n = Number(v);
+      if (isNaN(n)) return v + "%"; // 이미 문자열(% 포함)
+      return (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+    };
 
-    // 평가손익 원본값
-    const stockBalanceEvalRaw =
-      data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined
-        ? Number(data?.output2?.[0]?.evlu_pfls_smtl_amt)
-        : undefined;
+    /* ───────────── 원본 값 추출 ───────────── */
+    const o2 = data?.output2?.[0] ?? {};
+    const fo2 = futureData?.output2 ?? {};
 
-    const futureBalanceEvalRaw =
-      futureData?.output2?.evlu_pfls_amt_smtl !== undefined
-        ? Number(futureData?.output2?.evlu_pfls_amt_smtl)
-        : undefined;
+    const stockTotalVal = toNum(o2.tot_evlu_amt);
+    const futTotalVal = toNum(fo2.prsm_dpast);
 
-    // 전체 평가손익 원본값
-    const totalBalanceEvalRaw =
-      stockBalanceEvalRaw !== undefined && futureBalanceEvalRaw !== undefined
-        ? stockBalanceEvalRaw + futureBalanceEvalRaw
-        : undefined;
+    const stockPnl = toNum(o2.evlu_pfls_smtl_amt);
+    const stockCost = toNum(o2.pchs_amt_smtl_amt);
 
-    // 수익률 계산
-    const stockBalanceEvalPercent =
-      data?.output2?.[0]?.evlu_pfls_smtl_amt !== undefined &&
-      data?.output2?.[0]?.pchs_amt_smtl_amt !== undefined &&
-      Number(data?.output2?.[0]?.pchs_amt_smtl_amt) !== 0
-        ? (
-            (Number(data?.output2?.[0]?.evlu_pfls_smtl_amt) /
-              Number(data?.output2?.[0]?.pchs_amt_smtl_amt)) *
-            100
-          ).toFixed(2)
-        : "?";
+    const futPnl = toNum(fo2.evlu_pfls_amt_smtl);
+    const futCost = toNum(fo2.pchs_amt_smtl);
 
-    const futureBalanceEvalPercent =
-      futureData?.output2?.evlu_pfls_amt_smtl !== undefined &&
-      futureData?.output2?.pchs_amt_smtl !== undefined &&
-      Number(futureData?.output2?.pchs_amt_smtl) !== 0
-        ? (
-            (Number(futureData?.output2?.evlu_pfls_amt_smtl) /
-              Number(futureData?.output2?.pchs_amt_smtl)) *
-            100
-          ).toFixed(2)
-        : "?";
+    /* ───────────── 수익률 계산 ───────────── */
+    const pct = (pnl: number, cost: number) =>
+      isFinite(cost) && cost !== 0 ? ((pnl / cost) * 100).toFixed(2) : "?";
 
-    // 전체 평가손익률은 0.0으로 남겨둠
-    const totalBalanceEvalPercent = 0.0;
+    const stockPct = pct(stockPnl, stockCost);
+    const futPct = pct(futPnl, futCost);
 
-    // + 붙이기 함수
-    function addPlusSign(val: number | undefined) {
-      if (val === undefined) return "?";
-      if (val > 0) return "+" + val.toLocaleString();
-      return val.toLocaleString();
-    }
-    function addPlusSignPercent(val: string | number) {
-      if (val === "?") return "?";
-      const num = Number(val);
-      if (isNaN(num)) return val + "%";
-      if (num > 0) return "+" + num.toFixed(2) + "%";
-      return num.toFixed(2) + "%";
-    }
+    /* 전체 합계 */
+    const totalPnl =
+      (isFinite(stockPnl) ? stockPnl : 0) + (isFinite(futPnl) ? futPnl : 0);
+    const totalCost =
+      (isFinite(stockCost) ? stockCost : 0) + (isFinite(futCost) ? futCost : 0);
+    const totalPct = pct(totalPnl, totalCost);
 
+    /* ───────────── KPI 배열 반환 ───────────── */
     return [
-      { label: "주식 잔고 총평가금액(원)", value: stockBalancePlusCash },
-      { label: "선물옵션 잔고 총평가금액(원)", value: futureBalancePlusCash },
+      {
+        label: "주식 총평가금액(원)",
+        value: isFinite(stockTotalVal) ? stockTotalVal.toLocaleString() : "?",
+      },
+      {
+        label: "선물·옵션 총평가금액(원)",
+        value: isFinite(futTotalVal) ? futTotalVal.toLocaleString() : "?",
+      },
+
       {
         label: "전체 평가손익(원)",
-        value:
-          (totalBalanceEvalRaw !== undefined
-            ? addPlusSign(totalBalanceEvalRaw)
-            : "?") +
-          " (" +
-          addPlusSignPercent(totalBalanceEvalPercent) +
-          ")",
+        value: `${addPlus(totalPnl)} (${addPlusPct(totalPct)})`,
       },
       {
-        label: "주식 잔고 평가손익(원)",
-        value:
-          (stockBalanceEvalRaw !== undefined
-            ? addPlusSign(stockBalanceEvalRaw)
-            : "?") +
-          " (" +
-          addPlusSignPercent(stockBalanceEvalPercent) +
-          ")",
+        label: "주식 평가손익(원)",
+        value: `${addPlus(stockPnl)} (${addPlusPct(stockPct)})`,
       },
       {
-        label: "선물옵션 잔고 평가손익(원)",
-        value:
-          (futureBalanceEvalRaw !== undefined
-            ? addPlusSign(futureBalanceEvalRaw)
-            : "?") +
-          " (" +
-          addPlusSignPercent(futureBalanceEvalPercent) +
-          ")",
+        label: "선물·옵션 평가손익(원)",
+        value: `${addPlus(futPnl)} (${addPlusPct(futPct)})`,
       },
     ];
   }, [data, futureData]);
@@ -242,7 +202,6 @@ export default function Page() {
         error={futureError}
       />
 
-      {/* 주문내역 (Mock Data) */}
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
@@ -262,7 +221,6 @@ export default function Page() {
         error={orderError}
       />
 
-      {/* 주문내역 (Mock Data) */}
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
         columns={[
