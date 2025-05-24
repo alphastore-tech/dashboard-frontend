@@ -46,18 +46,21 @@ export default function Page() {
 
   let futurePositions = [];
   if (futureData && futureData.output1) {
-    futurePositions = futureData.output1.map((o: any) => ({
-      symbol: o.prdt_name,
-      side: o.sll_buy_dvsn_name,
-      qty: Number(o.cblc_qty),
-      avgPrice: Number(o.ccld_avg_unpr1).toLocaleString(),
-      currentPrice: Number(o.idx_clpr).toLocaleString(),
-      purchaseAmount: Number(o.pchs_amt).toLocaleString(),
-      evalAmount: Number(o.evlu_amt).toLocaleString(),
-      plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
-      plPercent:
-        ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) + "%",
-    }));
+    futurePositions = futureData.output1
+      .map((o: any) => ({
+        symbol: o.prdt_name,
+        side: o.sll_buy_dvsn_name,
+        qty: Number(o.cblc_qty),
+        avgPrice: Number(o.ccld_avg_unpr1).toLocaleString(),
+        currentPrice: Number(o.idx_clpr).toLocaleString(),
+        purchaseAmount: Number(o.pchs_amt).toLocaleString(),
+        evalAmount: Number(o.evlu_amt).toLocaleString(),
+        plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
+        plPercent:
+          ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) +
+          "%",
+      }))
+      .filter((o: any) => o.qty > 0);
   }
 
   const orders =
