@@ -1,9 +1,8 @@
-# .github/workflows/notify-slack.yml
 name: Notify Slack on Successful Deploy
 
 on:
   workflow_run:
-    workflows: ["Deploy to EC2"]        # 앞서 작성한 배포 워크플로 이름
+    workflows: ["Deploy to EC2"]
     types: [completed]
 
 jobs:
@@ -12,10 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ──────────────────────────────────────────────────────────────
-      # 1) 배포 워크플로 Context 가져오기
-      #    (head SHA, actor, repo 등은 event 객체 안에 포함)
-      # ──────────────────────────────────────────────────────────────
       - name: Extract deploy info
         id: info
         run: |
@@ -25,54 +20,29 @@ jobs:
           echo "compare_url=${{ github.event.workflow_run.head_repository.html_url }}/compare/${{ github.event.workflow_run.head_sha }}^...${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
           echo "date=$(date -u '+%Y-%m-%d %H:%M UTC')"                >> $GITHUB_OUTPUT
 
-      # ──────────────────────────────────────────────────────────────
-      # 2) Slack 알림
-      #    • SLACK_WEBHOOK_URL: 인커밍 웹훅 URL (Secrets 에 저장)
-      #    • 채널, 메시지 블록은 자유롭게 수정 가능
-      # ──────────────────────────────────────────────────────────────
-      - name: Send Slack message
+      - name: Send Slack message (Incoming Webhook)
         uses: slackapi/slack-github-action@v1.25.0
         with:
-          payload: |
-            {
-              "text": "🚀 *Prod Deploy Succeeded*",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":rocket: *Prod Deploy Succeeded*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Deployer:*\n${{ steps.info.outputs.actor }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Version:*\n`${{ steps.info.outputs.sha }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*When:*\n${{ steps.info.outputs.date }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Prod URL:*\n<https://alphastore-dashboard.be>"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Changes:*\n<${{ steps.info.outputs.compare_url }}|View commits & diff>"
-                  }
-                }
-              ]
-            }
+          text: ":rocket: *Prod Deploy Succeeded*"
+          blocks: |
+            [
+              {
+                "type": "section",
+                "text": { "type": "mrkdwn", "text": ":rocket: *Prod Deploy Succeeded*" }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  { "type": "mrkdwn", "text": "*Deployer:*\n${{ steps.info.outputs.actor }}" },
+                  { "type": "mrkdwn", "text": "*Version:*\n`${{ steps.info.outputs.sha }}`" },
+                  { "type": "mrkdwn", "text": "*When:*\n${{ steps.info.outputs.date }}" },
+                  { "type": "mrkdwn", "text": "*Prod URL:*\n<http://alphastore-dashboard.be>" }
+                ]
+              },
+              {
+                "type": "section",
+                "text": { "type": "mrkdwn", "text": "*Changes:*\n<${{ steps.info.outputs.compare_url }}|View commits & diff>" }
+              }
+            ]
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
