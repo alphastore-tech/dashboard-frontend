@@ -3,7 +3,7 @@ name: Notify Slack on Successful Deploy
 
 on:
   workflow_run:
-    workflows: ["Deploy to EC2"]
+    workflows: ["Deploy to EC2"]        # 배포 워크플로 이름
     types: [completed]
 
 jobs:
@@ -12,40 +12,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Extract deploy info
-        id: info
-        run: |
-          echo "actor=${{ github.event.workflow_run.actor.login }}"   >> $GITHUB_OUTPUT
-          echo "sha=${{ github.event.workflow_run.head_sha }}"        >> $GITHUB_OUTPUT
-          echo "repo=${{ github.event.workflow_run.head_repository.full_name }}" >> $GITHUB_OUTPUT
-          echo "compare_url=${{ github.event.workflow_run.head_repository.html_url }}/compare/${{ github.event.workflow_run.head_sha }}^...${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-          echo "date=$(date -u '+%Y-%m-%d %H:%M UTC')"                >> $GITHUB_OUTPUT
+    #──────────────────────────────────────────────────────────────
+    # 1) 최신 릴리스(가장 최근 tag) 정보 가져오기
+    #──────────────────────────────────────────────────────────────
+    - name: Get latest release
+      id: release
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {data: releases} = await github.rest.repos.listReleases({
+            owner: context.repo.owner,
+            repo:  context.repo.repo,
+            per_page: 1
+          });
+          const latest = releases[0];
+          core.setOutput('version',  (latest.tag_name||'').replace(/^v/, ''));
+          core.setOutput('notes',    latest.body || '(no release notes)');
+          core.setOutput('url',      latest.html_url);
 
-      - name: Send Slack message (Incoming Webhook)
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "text": ":rocket: *Prod Deploy Succeeded*",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": { "type": "mrkdwn", "text": ":rocket: *Prod Deploy Succeeded*" }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    { "type": "mrkdwn", "text": "*Deployer:*\n${{ steps.info.outputs.actor }}" },
-                    { "type": "mrkdwn", "text": "*Version:*\n`${{ steps.info.outputs.sha }}`" },
-                    { "type": "mrkdwn", "text": "*When:*\n${{ steps.info.outputs.date }}" },
-                    { "type": "mrkdwn", "text": "*Prod URL:*\n<https://alphastore-dashboard.be>" }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "text": { "type": "mrkdwn", "text": "*Changes:*\n<${{ steps.info.outputs.compare_url }}|View commits & diff>" }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    #──────────────────────────────────────────────────────────────
+    # 2) 한국 시간 포매팅
+    #──────────────────────────────────────────────────────────────
+    - name: Format Korea time
+      id: ktime
+      run: |
+        echo "kst=$(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M KST')" >> "$GITHUB_OUTPUT"
+
+    #──────────────────────────────────────────────────────────────
+    # 3) Slack Webhook 메시지 전송
+    #──────────────────────────────────────────────────────────────
+    - name: Post to Slack (Incoming Webhook)
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        # 릴리스 노트에서 따옴표/백틱 이스케이프 및 줄바꿈 → \n
+        notes=$(printf '%s' "${{ steps.release.outputs.notes }}" \
+                | sed 's/\\/\\\\/g; s/"/\\"/g; s/`/\\`/g; s/$/\\n/' )
+        cat >payload.json <<EOF
+        {
+          "text": ":rocket: Prod Deploy v${{ steps.release.outputs.version }} Succeeded",
+          "blocks": [
+            { "type": "section",
+              "text": { "type": "mrkdwn", "text": ":rocket: *Prod Deploy Succeeded*" } },
+            { "type": "section",
+              "fields": [
+                { "type": "mrkdwn", "text": "*Deployer:*\\n${{ github.event.workflow_run.actor.login }}" },
+                { "type": "mrkdwn", "text": "*Version:*\\n\`${{ steps.release.outputs.version }}\`" },
+                { "type": "mrkdwn", "text": "*When:*\\n${{ steps.ktime.outputs.kst }}" },
+                { "type": "mrkdwn", "text": "*Prod URL:*\\n<https://alphastore-dashboard.be>" }
+              ] },
+            { "type": "section",
+              "text": { "type": "mrkdwn", 
+                        "text": "*Changes:*\\n${notes}" } }
+          ]
+        }
+        EOF
+        curl -X POST -H 'Content-Type: application/json' \
+             -d @payload.json "$SLACK_WEBHOOK_URL"
