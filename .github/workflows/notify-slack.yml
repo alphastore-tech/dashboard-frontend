@@ -56,14 +56,14 @@ jobs:
               "text": { "type": "mrkdwn", "text": ":rocket: *Prod Deploy Succeeded*" } },
             { "type": "section",
               "fields": [
-                { "type": "mrkdwn", "text": "*Deployer:*\\n${{ github.event.workflow_run.actor.login }}" },
-                { "type": "mrkdwn", "text": "*Version:*\\n\`${{ steps.release.outputs.version }}\`" },
-                { "type": "mrkdwn", "text": "*When:*\\n${{ steps.ktime.outputs.kst }}" },
-                { "type": "mrkdwn", "text": "*Prod URL:*\\n<https://alphastore-dashboard.be>" }
+                { "type": "mrkdwn", "text": "*Deployer:* ${{ github.event.workflow_run.actor.login }}" },
+                { "type": "mrkdwn", "text": "*Version:* \`${{ steps.release.outputs.version }}\`" },
+                { "type": "mrkdwn", "text": "*When:* ${{ steps.ktime.outputs.kst }}" },
+                { "type": "mrkdwn", "text": "*Prod URL:* <http://alphastore-dashboard.be>" }
               ] },
             { "type": "section",
               "text": { "type": "mrkdwn", 
-                        "text": "*Changes:*\\n${notes}" } }
+                        "text": "*Changes*\\n${notes}" } }
           ]
         }
         EOF
