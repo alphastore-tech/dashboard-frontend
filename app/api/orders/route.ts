@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { fetchDailyOrders } from '@/lib/kis'
 import dayjs from 'dayjs'
 
+export const dynamic='force-dynamic'
+
 export async function GET() {
   try {
     const today = dayjs().format('YYYYMMDD')
