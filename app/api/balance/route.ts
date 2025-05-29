@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server'
 import { fetchBalance } from '@/lib/kis'
 
+export const dynamic='force-dynamic'
+
 export async function GET() {
   try {
     const data = await fetchBalance({
