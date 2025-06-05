@@ -22,7 +22,11 @@ export async function getAccessToken() {
 
   const secretData = JSON.parse(SecretString!);
   cachedToken = secretData.access_token;
-  expiresAt = Date.now() + (secretData.expires_in) * 1000; // s > ms
+
+  const iso = `${secretData.access_token_token_expired.replace(" ", "T")}+09:00`;
+  expiresAt = new Date(iso).getTime();
+  console.log("expiresAt", expiresAt);
+  console.log("Date.now()", Date.now());
   return cachedToken;
 }
 
