@@ -282,7 +282,7 @@ export default function Page() {
 
       {/* Positions Table */}
       <DataTable
-        title="모의 계좌 | 주식 잔고"
+        title="키움증권 주식 잔고"
         columns={[
           { header: "종목", accessor: "symbol" },
           { header: "매수/매도", accessor: "side" },
