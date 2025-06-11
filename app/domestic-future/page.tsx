@@ -41,7 +41,8 @@ export default function Page() {
         plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
         plPercent: o.evlu_pfls_rt + "%",
       }))
-      .filter((o: any) => o.qty > 0);
+      .filter((o: any) => o.qty > 0)
+      .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
 
   let futurePositions = [];
@@ -60,7 +61,8 @@ export default function Page() {
           ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) +
           "%",
       }))
-      .filter((o: any) => o.qty > 0);
+      .filter((o: any) => o.qty > 0)
+      .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
 
   const orders =
