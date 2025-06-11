@@ -102,6 +102,9 @@ const colorClass = (n: number) =>
 export default function Page() {
   // ---------------- Allocation logic ----------------
   const [viewMode, setViewMode] = useState<"stock" | "sector">("stock");
+  const [tableTab, setTableTab] = useState<"portfolio" | "holdings">(
+    "holdings"
+  );
 
   const cleanNum = (v: string | number) =>
     typeof v === "number" ? v : Number(String(v).replace(/[^\d.-]/g, ""));
@@ -254,6 +257,27 @@ export default function Page() {
             </ResponsiveContainer>
           </div>
         </section>
+      </div>
+      {/* ------------------------ Portfolio / Holdings Header ------------------------ */}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl font-semibold">Portfolio</h2>
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          {[
+            { id: "portfolio", label: "Portfolio" },
+            { id: "holdings", label: "Holdings" },
+          ].map((btn) => (
+            <button
+              key={btn.id}
+              type="button"
+              className={`px-4 py-1 text-sm border first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                tableTab === btn.id ? "bg-gray-200 font-semibold" : "bg-white"
+              }`}
+              onClick={() => setTableTab(btn.id as "portfolio" | "holdings")}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Positions Table */}
