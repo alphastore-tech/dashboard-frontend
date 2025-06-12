@@ -1,4 +1,5 @@
 import 'server-only'; // 이 파일이 클라이언트 번들에 포함되지 않도록
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
 export interface KiwoomTokenResponse {
   /** 토큰 만료 일시(ISO 8601 또는 Kiwoom 포맷) */
@@ -12,13 +13,32 @@ export interface KiwoomTokenResponse {
   return_msg: string;
 }
 
+let cachedToken: string | null = null;
+
+export async function getKiwoomAccessToken() {
+  if (cachedToken) {
+    return cachedToken;
+  }
+  const sm = new SecretsManagerClient({ region: 'ap-northeast-2' });
+  const { SecretString } = await sm.send(
+    new GetSecretValueCommand({ SecretId: process.env.AWS_SECRET_ID_KIWOOM }),
+  );
+
+  const secretData = JSON.parse(SecretString!);
+
+  console.log('secretData', secretData);
+  cachedToken = secretData.token;
+
+  return cachedToken;
+}
+
 /**
  * Kiwoom OAuth2 client-credentials 방식으로 접근 토큰 발급
  *
  * @param appKey    Kiwoom에서 발급받은 AppKey
  * @param secretKey Kiwoom에서 발급받은 SecretKey
  */
-export async function getKiwoomAccessToken(appKey: string, secretKey: string): Promise<string> {
+export async function requestKiwoomAccessToken(appKey: string, secretKey: string): Promise<string> {
   const url = 'https://api.kiwoom.com/oauth2/token';
 
   const res = await fetch(url, {
@@ -91,9 +111,11 @@ export async function fetchKiwoomBalance(req: BalanceRequest): Promise<KiwoomBal
   //   process.env.KIWOOM_APP_KEY!,
   //   process.env.KIWOOM_APP_SECRET!,
   // );
-  const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
+  // const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
 
-  if (!accessToken) throw new Error('KIWOOM_ACCESS_TOKEN is not set in the environment');
+  const accessToken = await getKiwoomAccessToken();
+
+  if (!accessToken) throw new Error('No Kiwoom Access Token');
 
   const payload = {
     qry_tp: '1',
@@ -113,12 +135,16 @@ export async function fetchKiwoomBalance(req: BalanceRequest): Promise<KiwoomBal
     body: JSON.stringify(payload),
   });
 
+  console.log(res);
+
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`[Kiwoom] ${res.status} ${res.statusText}: ${text}`);
   }
 
   const data = await res.json();
+
+  console.log(data);
 
   // 각 종목에 대해 업종명 조회하여 추가
   if (data.acnt_evlt_remn_indv_tot) {
@@ -167,7 +193,8 @@ export interface StockInfoResponse {
  * @param opts.mock  모의투자 도메인 사용 여부 (기본: false)
  */
 export async function getStockInformation(stockCode: string): Promise<StockInfoResponse | null> {
-  const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
+  const accessToken = await getKiwoomAccessToken();
+  // const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
   if (!accessToken) {
     throw new Error('KIWOOM_ACCESS_TOKEN is not set');
   }
