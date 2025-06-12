@@ -6,7 +6,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function useKiwoomBalance() {
   return useSWR<KiwoomBalanceResponse>('/api/kiwoom/balance', fetcher, {
-    refreshInterval: 5_000,
+    refreshInterval: 10_000,
     dedupingInterval: 4_000,
     keepPreviousData: true,
   });
