@@ -3,20 +3,7 @@ import DataTable from '@/components/DataTable';
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import useKiwoomBalance from '@/hooks/useKiwoomBalance';
-import { KiwoomBalanceItem } from '@/lib/kiwoom';
-// ─────────────────────────────────────────────────────────────────────────────
-// 📊   MOCK DATA
-// ─────────────────────────────────────────────────────────────────────────────
-
-const MOCK_SUMMARY = {
-  totalAmount: 1_550_523.12,
-  amountChange: 0,
-  amountChangePct: 0,
-  todayPnlAmt: 894.37,
-  todayPnlPct: 0,
-  totalPnlAmt: -894.37,
-  totalPnlPct: 0,
-};
+import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
 
 const PI_CHART_COLORS = [
   '#8884d8',
@@ -28,18 +15,23 @@ const PI_CHART_COLORS = [
   '#a4de6c',
 ];
 
+const parseNumber = (v?: string | number): number => Number(v ?? 0);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 📚   HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-
-const fmtCurrency = (n: number) =>
-  `₩${n.toLocaleString(undefined, {
+const fmtCurrency = (n?: number) => {
+  if (n === undefined || n === null || isNaN(n)) return '₩0';
+  return `₩${n.toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`;
+};
 
-const fmtSignedCurrency = (n: number) =>
-  `${n > 0 ? '+' : n < 0 ? '' : ''}${fmtCurrency(Math.abs(n))}`;
+const fmtSignedCurrency = (n?: number) => {
+  if (n === undefined || n === null || isNaN(n)) return '₩0';
+  return `${n > 0 ? '+' : n < 0 ? '' : ''}${fmtCurrency(Math.abs(n))}`;
+};
 
 const fmtPct = (n: number) => `${n > 0 ? '+' : n < 0 ? '-' : ''}${Math.abs(n).toFixed(2)}%`;
 
@@ -56,6 +48,30 @@ export default function Page() {
   const [viewMode, setViewMode] = useState<'stock' | 'sector'>('stock');
   const [tableTab, setTableTab] = useState<'portfolio' | 'holdings'>('holdings');
   const { data, isLoading, error } = useKiwoomBalance();
+  // ---------------- Summary computation ----------------
+  const summary = useMemo(() => {
+    if (!data) return {};
+
+    const totalAmount = parseNumber((data as KiwoomBalanceResponse).tot_evlt_amt);
+    const purchaseAmount = parseNumber((data as KiwoomBalanceResponse).tot_pur_amt);
+    const totalPnlAmt =
+      parseNumber((data as KiwoomBalanceResponse).tot_evlt_pl) || totalAmount - purchaseAmount;
+    const totalPnlPct = parseNumber((data as KiwoomBalanceResponse).tot_prft_rt);
+
+    // Kiwoom REST does not expose intraday P/L in this endpoint; default to 0.
+    const todayPnlAmt = 0;
+    const todayPnlPct = 0;
+
+    return {
+      totalAmount,
+      amountChange: totalPnlAmt,
+      amountChangePct: totalPnlPct,
+      todayPnlAmt,
+      todayPnlPct,
+      totalPnlAmt,
+      totalPnlPct,
+    };
+  }, [data]);
 
   const positions = useMemo(() => {
     if (!data || !Array.isArray(data.acnt_evlt_remn_indv_tot)) return [];
@@ -126,13 +142,13 @@ export default function Page() {
           {/* Total Amount */}
           <div>
             <p className="text-sm font-medium text-gray-600">Total Amount</p>
-            <p className="text-4xl font-bold mt-1">{fmtCurrency(MOCK_SUMMARY.totalAmount)}</p>
+            <p className="text-4xl font-bold mt-1">{fmtCurrency(summary.totalAmount)}</p>
             <div className="flex gap-4 text-sm mt-2">
-              <span className={colorClass(MOCK_SUMMARY.amountChangePct)}>
-                {arrow(MOCK_SUMMARY.amountChangePct)} {fmtPct(MOCK_SUMMARY.amountChangePct)}
+              <span className={colorClass(summary.amountChangePct)}>
+                {arrow(summary.amountChangePct)} {fmtPct(summary.amountChangePct)}
               </span>
-              <span className={colorClass(MOCK_SUMMARY.amountChange)}>
-                {fmtSignedCurrency(MOCK_SUMMARY.amountChange)}
+              <span className={colorClass(summary.amountChange)}>
+                {fmtSignedCurrency(summary.amountChange)}
               </span>
             </div>
           </div>
@@ -144,11 +160,11 @@ export default function Page() {
               <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
                 Today PNL <span className="text-gray-400 text-xs">?</span>
               </p>
-              <p className={`text-2xl font-bold mt-1 ${colorClass(MOCK_SUMMARY.todayPnlAmt)}`}>
-                {fmtSignedCurrency(MOCK_SUMMARY.todayPnlAmt)}
+              <p className={`text-2xl font-bold mt-1 ${colorClass(summary.todayPnlAmt)}`}>
+                {fmtSignedCurrency(summary.todayPnlAmt)}
               </p>
-              <div className={`text-sm mt-1 ${colorClass(MOCK_SUMMARY.todayPnlPct)}`}>
-                {arrow(MOCK_SUMMARY.todayPnlPct)} {fmtPct(MOCK_SUMMARY.todayPnlPct)}
+              <div className={`text-sm mt-1 ${colorClass(summary.todayPnlPct)}`}>
+                {arrow(summary.todayPnlPct)} {fmtPct(summary.todayPnlPct)}
               </div>
             </div>
 
@@ -157,11 +173,11 @@ export default function Page() {
               <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
                 Total PNL <span className="text-gray-400 text-xs">?</span>
               </p>
-              <p className={`text-2xl font-bold mt-1 ${colorClass(MOCK_SUMMARY.totalPnlAmt)}`}>
-                {fmtSignedCurrency(MOCK_SUMMARY.totalPnlAmt)}
+              <p className={`text-2xl font-bold mt-1 ${colorClass(summary.totalPnlAmt)}`}>
+                {fmtSignedCurrency(summary.totalPnlAmt)}
               </p>
-              <div className={`text-sm mt-1 ${colorClass(MOCK_SUMMARY.totalPnlPct)}`}>
-                {arrow(MOCK_SUMMARY.totalPnlPct)} {fmtPct(MOCK_SUMMARY.totalPnlPct)}
+              <div className={`text-sm mt-1 ${colorClass(summary.totalPnlPct)}`}>
+                {arrow(summary.totalPnlPct)} {fmtPct(summary.totalPnlPct)}
               </div>
             </div>
           </div>
@@ -249,9 +265,9 @@ export default function Page() {
           { header: '비중', accessor: 'holdingPercent', align: 'right' },
         ]}
         data={positions}
-        loading={false}
+        loading={isLoading}
         emptyMessage="보유 종목이 없습니다."
-        error={undefined}
+        error={error}
       />
     </main>
   );
