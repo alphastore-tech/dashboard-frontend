@@ -1,31 +1,19 @@
-"use client";
+'use client';
 
-import StatCard from "@/components/StatCard";
-import DataTable from "@/components/DataTable";
-import useBalance from "@/components/useBalance";
-import useFoBalance from "@/components/useFoBalance";
-import useOrders from "@/components/useOrders";
-import useFoOrders from "@/components/useFoOrders";
-import { useMemo } from "react";
+import StatCard from '@/components/StatCard';
+import DataTable from '@/components/DataTable';
+import useBalance from '@/components/useBalance';
+import useFoBalance from '@/components/useFoBalance';
+import useOrders from '@/components/useOrders';
+import useFoOrders from '@/components/useFoOrders';
+import { useMemo } from 'react';
 
 export default function Page() {
   const { data, isLoading, error } = useBalance();
-  const {
-    data: futureData,
-    isLoading: futureLoading,
-    error: futureError,
-  } = useFoBalance();
-  const {
-    data: orderData,
-    isLoading: orderLoading,
-    error: orderError,
-  } = useOrders();
+  const { data: futureData, isLoading: futureLoading, error: futureError } = useFoBalance();
+  const { data: orderData, isLoading: orderLoading, error: orderError } = useOrders();
 
-  const {
-    data: foOrderData,
-    isLoading: foLoading,
-    error: foError,
-  } = useFoOrders();
+  const { data: foOrderData, isLoading: foLoading, error: foError } = useFoOrders();
 
   let positions = [];
   if (data && data.output1) {
@@ -39,7 +27,7 @@ export default function Page() {
         purchaseAmount: Number(o.pchs_amt).toLocaleString(),
         evalAmount: Number(o.evlu_amt).toLocaleString(),
         plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
-        plPercent: o.evlu_pfls_rt + "%",
+        plPercent: o.evlu_pfls_rt + '%',
       }))
       .filter((o: any) => o.qty > 0)
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
@@ -57,9 +45,7 @@ export default function Page() {
         purchaseAmount: Number(o.pchs_amt).toLocaleString(),
         evalAmount: Number(o.evlu_amt).toLocaleString(),
         plAmount: Number(o.evlu_pfls_amt).toLocaleString(),
-        plPercent:
-          ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) +
-          "%",
+        plPercent: ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) + '%',
       }))
       .filter((o: any) => o.qty > 0)
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
@@ -95,13 +81,13 @@ export default function Page() {
   const stats = useMemo(() => {
     const toNum = (v: unknown) => Number(v ?? NaN);
     const addPlus = (n: number | undefined) =>
-      n === undefined ? "?" : (n > 0 ? "+" : "") + n.toLocaleString();
+      n === undefined ? '?' : (n > 0 ? '+' : '') + n.toLocaleString();
 
     const addPlusPct = (v: string | number) => {
-      if (v === "?") return "?";
+      if (v === '?') return '?';
       const n = Number(v);
-      if (isNaN(n)) return v + "%"; // 이미 문자열(% 포함)
-      return (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+      if (isNaN(n)) return v + '%'; // 이미 문자열(% 포함)
+      return (n > 0 ? '+' : '') + n.toFixed(2) + '%';
     };
 
     /* ───────────── 원본 값 추출 ───────────── */
@@ -119,39 +105,37 @@ export default function Page() {
 
     /* ───────────── 수익률 계산 ───────────── */
     const pct = (pnl: number, cost: number) =>
-      isFinite(cost) && cost !== 0 ? ((pnl / cost) * 100).toFixed(2) : "?";
+      isFinite(cost) && cost !== 0 ? ((pnl / cost) * 100).toFixed(2) : '?';
 
     const stockPct = pct(stockPnl, stockCost);
     const futPct = pct(futPnl, futCost);
 
     /* 전체 합계 */
-    const totalPnl =
-      (isFinite(stockPnl) ? stockPnl : 0) + (isFinite(futPnl) ? futPnl : 0);
-    const totalCost =
-      (isFinite(stockCost) ? stockCost : 0) + (isFinite(futCost) ? futCost : 0);
+    const totalPnl = (isFinite(stockPnl) ? stockPnl : 0) + (isFinite(futPnl) ? futPnl : 0);
+    const totalCost = (isFinite(stockCost) ? stockCost : 0) + (isFinite(futCost) ? futCost : 0);
     const totalPct = pct(totalPnl, totalCost);
 
     /* ───────────── KPI 배열 반환 ───────────── */
     return [
       {
-        label: "주식 총평가금액(원)",
-        value: isFinite(stockTotalVal) ? stockTotalVal.toLocaleString() : "?",
+        label: '주식 총평가금액(원)',
+        value: isFinite(stockTotalVal) ? stockTotalVal.toLocaleString() : '?',
       },
       {
-        label: "선물·옵션 총평가금액(원)",
-        value: isFinite(futTotalVal) ? futTotalVal.toLocaleString() : "?",
+        label: '선물·옵션 총평가금액(원)',
+        value: isFinite(futTotalVal) ? futTotalVal.toLocaleString() : '?',
       },
 
       {
-        label: "전체 평가손익(원)",
+        label: '전체 평가손익(원)',
         value: `${addPlus(totalPnl)} (${addPlusPct(totalPct)})`,
       },
       {
-        label: "주식 평가손익(원)",
+        label: '주식 평가손익(원)',
         value: `${addPlus(stockPnl)} (${addPlusPct(stockPct)})`,
       },
       {
-        label: "선물·옵션 평가손익(원)",
+        label: '선물·옵션 평가손익(원)',
         value: `${addPlus(futPnl)} (${addPlusPct(futPct)})`,
       },
     ];
@@ -172,15 +156,15 @@ export default function Page() {
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
         columns={[
-          { header: "종목", accessor: "symbol" },
-          { header: "매수/매도", accessor: "side" },
-          { header: "수량", accessor: "qty", align: "right" },
-          { header: "평균단가", accessor: "avgPrice", align: "right" },
-          { header: "현재가", accessor: "currentPrice", align: "right" },
-          { header: "매입금액", accessor: "purchaseAmount", align: "right" },
-          { header: "평가금액", accessor: "evalAmount", align: "right" },
-          { header: "손익금액", accessor: "plAmount", align: "right" },
-          { header: "손익률", accessor: "plPercent", align: "right" },
+          { header: '종목', accessor: 'symbol' },
+          { header: '매수/매도', accessor: 'side' },
+          { header: '수량', accessor: 'qty', align: 'right' },
+          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+          { header: '현재가', accessor: 'currentPrice', align: 'right' },
+          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+          { header: '손익금액', accessor: 'plAmount', align: 'right' },
+          { header: '수익률', accessor: 'plPercent', align: 'right' },
         ]}
         data={positions}
         loading={isLoading && !data}
@@ -191,15 +175,15 @@ export default function Page() {
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
         columns={[
-          { header: "종목", accessor: "symbol" },
-          { header: "매수/매도", accessor: "side" },
-          { header: "수량", accessor: "qty", align: "right" },
-          { header: "평균단가", accessor: "avgPrice", align: "right" },
-          { header: "현재가", accessor: "currentPrice", align: "right" },
-          { header: "매입금액", accessor: "purchaseAmount", align: "right" },
-          { header: "평가금액", accessor: "evalAmount", align: "right" },
-          { header: "손익금액", accessor: "plAmount", align: "right" },
-          { header: "손익률", accessor: "plPercent", align: "right" },
+          { header: '종목', accessor: 'symbol' },
+          { header: '매수/매도', accessor: 'side' },
+          { header: '수량', accessor: 'qty', align: 'right' },
+          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+          { header: '현재가', accessor: 'currentPrice', align: 'right' },
+          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+          { header: '손익금액', accessor: 'plAmount', align: 'right' },
+          { header: '수익률', accessor: 'plPercent', align: 'right' },
         ]}
         data={futurePositions}
         loading={futureLoading && !futureData}
@@ -210,15 +194,15 @@ export default function Page() {
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
-          { header: "주문번호", accessor: "orderNo" },
-          { header: "주문시각", accessor: "orderTime" },
-          { header: "종목", accessor: "symbol" },
-          { header: "매수/매도", accessor: "side" },
-          { header: "주문수량", accessor: "orderQty", align: "right" },
-          { header: "체결수량", accessor: "filledQty", align: "right" },
-          { header: "주문가격", accessor: "orderPrice", align: "right" },
-          { header: "평균체결가격", accessor: "avgPrice", align: "right" },
-          { header: "총체결금액", accessor: "totalAmount", align: "right" },
+          { header: '주문번호', accessor: 'orderNo' },
+          { header: '주문시각', accessor: 'orderTime' },
+          { header: '종목', accessor: 'symbol' },
+          { header: '매수/매도', accessor: 'side' },
+          { header: '주문수량', accessor: 'orderQty', align: 'right' },
+          { header: '체결수량', accessor: 'filledQty', align: 'right' },
+          { header: '주문가격', accessor: 'orderPrice', align: 'right' },
+          { header: '평균체결가격', accessor: 'avgPrice', align: 'right' },
+          { header: '총체결금액', accessor: 'totalAmount', align: 'right' },
         ]}
         data={orders}
         loading={orderLoading && !orderData}
@@ -229,15 +213,15 @@ export default function Page() {
       <DataTable
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
         columns={[
-          { header: "주문번호", accessor: "주문번호" },
-          { header: "주문시각", accessor: "주문시각" },
-          { header: "종목", accessor: "종목" },
-          { header: "매수/매도", accessor: "매수매도", align: "center" },
-          { header: "주문수량", accessor: "주문수량", align: "right" },
-          { header: "총체결수량", accessor: "총체결수량", align: "right" },
-          { header: "주문가격", accessor: "주문가격", align: "right" },
-          { header: "평균체결가격", accessor: "평균체결가격", align: "right" },
-          { header: "총체결금액", accessor: "총체결금액", align: "right" },
+          { header: '주문번호', accessor: '주문번호' },
+          { header: '주문시각', accessor: '주문시각' },
+          { header: '종목', accessor: '종목' },
+          { header: '매수/매도', accessor: '매수매도', align: 'center' },
+          { header: '주문수량', accessor: '주문수량', align: 'right' },
+          { header: '총체결수량', accessor: '총체결수량', align: 'right' },
+          { header: '주문가격', accessor: '주문가격', align: 'right' },
+          { header: '평균체결가격', accessor: '평균체결가격', align: 'right' },
+          { header: '총체결금액', accessor: '총체결금액', align: 'right' },
         ]}
         data={foOrders}
         loading={foLoading && !foOrderData}
