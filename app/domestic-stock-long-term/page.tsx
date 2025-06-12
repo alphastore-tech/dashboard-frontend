@@ -11,6 +11,7 @@
 import DataTable from "@/components/DataTable";
 import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { getKiwoomAccessToken } from "@/lib/kiwoom";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 📊   MOCK DATA
