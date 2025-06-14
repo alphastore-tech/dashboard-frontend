@@ -50,7 +50,18 @@ export default function Page() {
   const { data, isLoading, error } = useKiwoomBalance();
   // ---------------- Summary computation ----------------
   const summary = useMemo(() => {
-    if (!data) return {};
+    if (!data) {
+      // default values when loading or no data
+      return {
+        totalAmount: 0,
+        amountChange: 0,
+        amountChangePct: 0,
+        todayPnlAmt: 0,
+        todayPnlPct: 0,
+        totalPnlAmt: 0,
+        totalPnlPct: 0,
+      };
+    }
 
     const totalAmount = parseNumber((data as KiwoomBalanceResponse).tot_evlt_amt);
     const purchaseAmount = parseNumber((data as KiwoomBalanceResponse).tot_pur_amt);
