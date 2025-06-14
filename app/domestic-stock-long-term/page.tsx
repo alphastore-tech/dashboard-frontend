@@ -6,13 +6,16 @@ import useKiwoomBalance from '@/hooks/useKiwoomBalance';
 import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
 
 const PI_CHART_COLORS = [
-  '#8884d8',
-  '#82ca9d',
-  '#ffc658',
-  '#ff8042',
-  '#8dd1e1',
-  '#d0ed57',
-  '#a4de6c',
+  '#1e40af',
+  '#dc2626',
+  '#059669',
+  '#d97706',
+  '#7c3aed',
+  '#db2777',
+  '#0891b2',
+  '#65a30d',
+  '#ea580c',
+  '#4338ca',
 ];
 
 const parseNumber = (v?: string | number): number => Number(v ?? 0);
