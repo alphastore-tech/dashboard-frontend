@@ -14,21 +14,35 @@ export interface KiwoomTokenResponse {
 }
 
 let cachedToken: string | null = null;
+let expiresAt: number = 0;
 
 export async function getKiwoomAccessToken() {
-  if (cachedToken) {
+  if (cachedToken && Date.now() < expiresAt) {
     return cachedToken;
   }
+
   const sm = new SecretsManagerClient({ region: 'ap-northeast-2' });
   const { SecretString } = await sm.send(
     new GetSecretValueCommand({ SecretId: process.env.AWS_SECRET_ID_KIWOOM }),
   );
 
   const secretData = JSON.parse(SecretString!);
-
-  console.log('secretData', secretData);
   cachedToken = secretData.token;
 
+  console.log('expireddt', secretData.expires_dt);
+
+  // expires_dt 형식: 20250615181054 (YYYYMMDDHHMMSS)
+  const expireddt = secretData.expires_dt;
+  const year = parseInt(expireddt.substring(0, 4));
+  const month = parseInt(expireddt.substring(4, 6)) - 1; // 월은 0부터 시작
+  const day = parseInt(expireddt.substring(6, 8));
+  const hour = parseInt(expireddt.substring(8, 10));
+  const minute = parseInt(expireddt.substring(10, 12));
+  const second = parseInt(expireddt.substring(12, 14));
+
+  expiresAt = new Date(year, month, day, hour, minute, second).getTime();
+  console.log('expiresAt', expiresAt);
+  console.log('Date.now()', Date.now());
   return cachedToken;
 }
 
@@ -107,12 +121,6 @@ export interface KiwoomBalanceResponse {
 
 /* --------------------------- 메인 함수 --------------------------- */
 export async function fetchKiwoomBalance(req: BalanceRequest): Promise<KiwoomBalanceResponse> {
-  // const accessToken = await getKiwoomAccessToken(
-  //   process.env.KIWOOM_APP_KEY!,
-  //   process.env.KIWOOM_APP_SECRET!,
-  // );
-  // const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
-
   const accessToken = await getKiwoomAccessToken();
 
   if (!accessToken) throw new Error('No Kiwoom Access Token');
@@ -194,7 +202,6 @@ export interface StockInfoResponse {
  */
 export async function getStockInformation(stockCode: string): Promise<StockInfoResponse | null> {
   const accessToken = await getKiwoomAccessToken();
-  // const accessToken = process.env.KIWOOM_ACCESS_TOKEN;
   if (!accessToken) {
     throw new Error('KIWOOM_ACCESS_TOKEN is not set');
   }
