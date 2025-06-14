@@ -1,13 +1,11 @@
 /* lib/kis.ts */
-import qs from 'querystring'
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import qs from 'querystring';
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
-const {
-  KIS_APP_KEY,
-  KIS_APP_SECRET,
-  KIS_DOMAIN,
-  AWS_SECRET_ID,
-} = process.env as Record<string, string>
+const { KIS_APP_KEY, KIS_APP_SECRET, KIS_DOMAIN, AWS_SECRET_ID } = process.env as Record<
+  string,
+  string
+>;
 
 let cachedToken: string | null = null;
 let expiresAt: number = 0;
@@ -17,16 +15,16 @@ export async function getAccessToken() {
     return cachedToken;
   }
 
-  const sm = new SecretsManagerClient({ region: "ap-northeast-2" });
+  const sm = new SecretsManagerClient({ region: 'ap-northeast-2' });
   const { SecretString } = await sm.send(new GetSecretValueCommand({ SecretId: AWS_SECRET_ID }));
 
   const secretData = JSON.parse(SecretString!);
   cachedToken = secretData.access_token;
 
-  const iso = `${secretData.access_token_token_expired.replace(" ", "T")}+09:00`;
+  const iso = `${secretData.access_token_token_expired.replace(' ', 'T')}+09:00`;
   expiresAt = new Date(iso).getTime();
-  console.log("expiresAt", expiresAt);
-  console.log("Date.now()", Date.now());
+  console.log('expiresAt', expiresAt);
+  console.log('Date.now()', Date.now());
   return cachedToken;
 }
 
@@ -69,10 +67,10 @@ export async function fetchBalance({
   ctxAreaFk100 = '',
   ctxAreaNk100 = '',
 }: {
-  cano: string
-  acntPrdtCd: string
-  ctxAreaFk100?: string
-  ctxAreaNk100?: string
+  cano: string;
+  acntPrdtCd: string;
+  ctxAreaFk100?: string;
+  ctxAreaNk100?: string;
 }) {
   const q = qs.stringify({
     CANO: cano,
@@ -86,9 +84,9 @@ export async function fetchBalance({
     PRCS_DVSN: '00',
     CTX_AREA_FK100: ctxAreaFk100,
     CTX_AREA_NK100: ctxAreaNk100,
-  })
+  });
 
-  const accessToken = await getAccessToken()
+  const accessToken = await getAccessToken();
 
   const res = await fetch(`${KIS_DOMAIN}/uapi/domestic-stock/v1/trading/inquire-balance?${q}`, {
     method: 'GET',
@@ -100,35 +98,33 @@ export async function fetchBalance({
       tr_id: 'TTTC8434R',
     },
     cache: 'no-store',
-  })
+  });
 
   console.log(res);
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json() as Promise<BalanceResponse>
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<BalanceResponse>;
 }
 
 /** 타입 예시 — 필요한 필드만 골라 정의 */
 export interface BalanceResponse {
   output1: {
-    prdt_name: string // 종목명
-    trad_dvsn_name: string // 매수/매도
-    hldg_qty: string // 잔고수량
-    pchs_avg_pric: string // 평균매입단가
-    prpr: string // 현재가
-    pchs_amt: string // 매입금액
-    evlu_amt: string // 평가금액
-    evlu_pfls_amt: string // 평가손익금액
-    evlu_pfls_rt: string // 평가손익율
-    
-  }[],
+    prdt_name: string; // 종목명
+    trad_dvsn_name: string; // 매수/매도
+    hldg_qty: string; // 잔고수량
+    pchs_avg_pric: string; // 평균매입단가
+    prpr: string; // 현재가
+    pchs_amt: string; // 매입금액
+    evlu_amt: string; // 평가금액
+    evlu_pfls_amt: string; // 평가손익금액
+    evlu_pfls_rt: string; // 평가손익율
+  }[];
   output2: {
-    tot_evlu_amt: string // 총평가금액
-    evlu_pfls_smtl_amt: string // 총평가손익금액
-    pchs_amt_smtl_amt: string // 총매입금액
-  }[]
+    tot_evlu_amt: string; // 총평가금액
+    evlu_pfls_smtl_amt: string; // 총평가손익금액
+    pchs_amt_smtl_amt: string; // 총매입금액
+  }[];
 }
-
 
 /** ──────────────────────────────────────────
  *  (NEW) 선물·옵션 잔고 조회
@@ -136,17 +132,17 @@ export interface BalanceResponse {
 export async function fetchFoBalance({
   cano,
   acntPrdtCd,
-  mgnDiv = '01',           // 개시증거금
-  exccStatCd = '2',        // 정산가 기준
+  mgnDiv = '01', // 개시증거금
+  exccStatCd = '2', // 정산가 기준
   ctxAreaFk200 = '',
   ctxAreaNk200 = '',
 }: {
-  cano: string
-  acntPrdtCd: string
-  mgnDiv?: '01' | '02'
-  exccStatCd?: '1' | '2'
-  ctxAreaFk200?: string
-  ctxAreaNk200?: string
+  cano: string;
+  acntPrdtCd: string;
+  mgnDiv?: '01' | '02';
+  exccStatCd?: '1' | '2';
+  ctxAreaFk200?: string;
+  ctxAreaNk200?: string;
 }) {
   const q = qs.stringify({
     CANO: cano,
@@ -155,9 +151,9 @@ export async function fetchFoBalance({
     EXCC_STAT_CD: exccStatCd,
     CTX_AREA_FK200: ctxAreaFk200,
     CTX_AREA_NK200: ctxAreaNk200,
-  })
+  });
 
-  const accessToken = await getAccessToken()
+  const accessToken = await getAccessToken();
 
   const res = await fetch(
     `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-balance?${q}`,
@@ -172,38 +168,38 @@ export async function fetchFoBalance({
       },
       cache: 'no-store',
     },
-  )
+  );
 
   console.log(res);
 
-  if (!res.ok) throw new Error(`FO balance HTTP ${res.status}`)
-  return res.json() as Promise<FoBalanceResponse>
+  if (!res.ok) throw new Error(`FO balance HTTP ${res.status}`);
+  return res.json() as Promise<FoBalanceResponse>;
 }
 
 /* 필요한 필드만 선언 */
 export interface FoBalanceResponse {
-  rt_cd: string
-  msg_cd: string
-  msg1: string
-  ctx_area_fk200: string
-  ctx_area_nk200: string
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+  ctx_area_fk200: string;
+  ctx_area_nk200: string;
   output1: {
-    shtn_pdno: string          // 단축상품번호
-    prdt_name: string     // 종목명
-    sll_buy_dvsn_name: string // 매수/매도
-    cblc_qty: string      // 잔고수량
-    ccld_avg_unpr1: string// 평균단가
-    idx_clpr: string // 정산단가
-    pchs_amt: string        // 매입금액
-    evlu_amt: string       // 평가금액
-    evlu_pfls_amt: string  // 평가손익금액
-  }[],
+    shtn_pdno: string; // 단축상품번호
+    prdt_name: string; // 종목명
+    sll_buy_dvsn_name: string; // 매수/매도
+    cblc_qty: string; // 잔고수량
+    ccld_avg_unpr1: string; // 평균단가
+    idx_clpr: string; // 정산단가
+    pchs_amt: string; // 매입금액
+    evlu_amt: string; // 평가금액
+    evlu_pfls_amt: string; // 평가손익금액
+  }[];
   output2: {
-    prsm_dpast: string    // 추정예탁자산
-    prsm_dpast_amt: string    // 추정예탁자산금액
-    evlu_pfls_amt_smtl: string // 총평가손익금액
-    pchs_amt_smtl: string // 총매입금액
-  }
+    prsm_dpast: string; // 추정예탁자산
+    prsm_dpast_amt: string; // 추정예탁자산금액
+    evlu_pfls_amt_smtl: string; // 총평가손익금액
+    pchs_amt_smtl: string; // 총매입금액
+  };
 }
 
 /** 주식 - 일별 주문·체결 내역 */
@@ -215,12 +211,12 @@ export async function fetchDailyOrders({
   nextFk = '',
   nextNk = '',
 }: {
-  cano: string
-  acntPrdtCd: string
-  startDate: string  // YYYYMMDD
-  endDate: string    // YYYYMMDD
-  nextFk?: string    // 연속조회 검색조건
-  nextNk?: string
+  cano: string;
+  acntPrdtCd: string;
+  startDate: string; // YYYYMMDD
+  endDate: string; // YYYYMMDD
+  nextFk?: string; // 연속조회 검색조건
+  nextNk?: string;
 }) {
   const q = qs.stringify({
     CANO: cano,
@@ -238,56 +234,53 @@ export async function fetchDailyOrders({
     EXCG_ID_DVSN_CD: 'KRX',
     CTX_AREA_FK100: nextFk,
     CTX_AREA_NK100: nextNk,
-  })
+  });
 
-  const accessToken = await getAccessToken()
+  const accessToken = await getAccessToken();
 
-  const res = await fetch(
-    `${KIS_DOMAIN}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        authorization: `Bearer ${accessToken}`,
-        appkey: KIS_APP_KEY,
-        appsecret: KIS_APP_SECRET,
-        tr_id: 'TTTC0081R',       // 실전 3개월 이내 / 모의 'VTTC0081R'
-        custtype: 'P',
-      },
-      cache: 'no-store',
+  const res = await fetch(`${KIS_DOMAIN}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`, {
+    method: 'GET',
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      authorization: `Bearer ${accessToken}`,
+      appkey: KIS_APP_KEY,
+      appsecret: KIS_APP_SECRET,
+      tr_id: 'TTTC0081R', // 실전 3개월 이내 / 모의 'VTTC0081R'
+      custtype: 'P',
     },
-  )
+    cache: 'no-store',
+  });
 
   console.log(res);
 
-  if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`)
-  return res.json() as Promise<OrderHistoryResponse>
+  if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`);
+  return res.json() as Promise<OrderHistoryResponse>;
 }
 
 export interface OrderRow {
-  odno: string // 주문번호
-  ord_tmd: string // 주문시각
-  prdt_name: string // 종목명
-  sll_buy_dvsn_cd_name: string // 매수/매도
-  ord_qty: string // 주문수량
-  tot_ccld_qty: string // 총체결수량
-  ord_unpr: string // 주문가격
-  avg_prvs: string // 평균체결가격
-  tot_ccld_amt: string // 총체결금액
+  odno: string; // 주문번호
+  ord_tmd: string; // 주문시각
+  prdt_name: string; // 종목명
+  sll_buy_dvsn_cd_name: string; // 매수/매도
+  ord_qty: string; // 주문수량
+  tot_ccld_qty: string; // 총체결수량
+  ord_unpr: string; // 주문가격
+  avg_prvs: string; // 평균체결가격
+  tot_ccld_amt: string; // 총체결금액
 }
 
 export interface OrderHistoryResponse {
-  rt_cd: string
-  msg_cd: string
-  msg1: string
-  output1: OrderRow[]
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+  output1: OrderRow[];
   output2: {
-    tot_ord_qty: string
-    tot_ccld_qty: string
-    tot_ccld_amt: string
-  }
-  ctx_area_fk100: string
-  ctx_area_nk100: string
+    tot_ord_qty: string;
+    tot_ccld_qty: string;
+    tot_ccld_amt: string;
+  };
+  ctx_area_fk100: string;
+  ctx_area_nk100: string;
 }
 
 export async function fetchFoOrders({
@@ -298,12 +291,12 @@ export async function fetchFoOrders({
   nextFk = '',
   nextNk = '',
 }: {
-  cano: string
-  acntPrdtCd: string
-  startDate: string   // YYYYMMDD
-  endDate: string     // YYYYMMDD
-  nextFk?: string
-  nextNk?: string
+  cano: string;
+  acntPrdtCd: string;
+  startDate: string; // YYYYMMDD
+  endDate: string; // YYYYMMDD
+  nextFk?: string;
+  nextNk?: string;
 }) {
   const q = qs.stringify({
     CANO: cano,
@@ -312,59 +305,53 @@ export async function fetchFoOrders({
     END_ORD_DT: endDate,
     SLL_BUY_DVSN_CD: '00',
     CCLD_NCCS_DVSN: '00',
-    SORT_SQN: 'DS',            // 역순
+    SORT_SQN: 'DS', // 역순
     STRT_ODNO: '',
     PDNO: '',
     MKET_ID_CD: '',
     CTX_AREA_FK200: nextFk,
     CTX_AREA_NK200: nextNk,
-  })
+  });
 
-  const token = await getAccessToken()
+  const token = await getAccessToken();
 
-  const res = await fetch(
-    `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        authorization: `Bearer ${token}`,
-        appkey: KIS_APP_KEY,
-        appsecret: KIS_APP_SECRET,
-        tr_id: 'TTTO5201R',
-        custtype: 'P',
-      },
-      cache: 'no-store',
+  const res = await fetch(`${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`, {
+    method: 'GET',
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      authorization: `Bearer ${token}`,
+      appkey: KIS_APP_KEY,
+      appsecret: KIS_APP_SECRET,
+      tr_id: 'TTTO5201R',
+      custtype: 'P',
     },
-  )
+    cache: 'no-store',
+  });
 
   console.log(res);
 
-  if (!res.ok) throw new Error(`FO orders HTTP ${res.status}`)
-  return res.json() as Promise<FoOrderResponse>
+  if (!res.ok) throw new Error(`FO orders HTTP ${res.status}`);
+  return res.json() as Promise<FoOrderResponse>;
 }
 
 export interface FoOrderResponse {
   output1: {
-    ord_dt: string
-    prdt_name: string
-    trad_dvsn_name: string
-    ord_qty: string
-    tot_ccld_qty: string
-    avg_idx: string
-    tot_ccld_amt: string
-  }[]
+    ord_dt: string;
+    prdt_name: string;
+    trad_dvsn_name: string;
+    ord_qty: string;
+    tot_ccld_qty: string;
+    avg_idx: string;
+    tot_ccld_amt: string;
+  }[];
   output2: {
-    tot_ord_qty: string
-    tot_ccld_qty_smtl: string
-    tot_ccld_amt_smtl: string
-  }
-  ctx_area_fk200: string
-  ctx_area_nk200: string
-  rt_cd: string
-  msg_cd: string
-  msg1: string
+    tot_ord_qty: string;
+    tot_ccld_qty_smtl: string;
+    tot_ccld_amt_smtl: string;
+  };
+  ctx_area_fk200: string;
+  ctx_area_nk200: string;
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
 }
-
-
-

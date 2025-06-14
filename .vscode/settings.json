@@ -1,0 +1,11 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // Prettier 확장 설치 필요
+  "editor.formatOnSave": "true",
+  // ESLint로도 자동으로 포맷/수정하도록:
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "true", // ESLint, TypeScript 등 가능
+    "source.fixAll.eslint": "true" // ESLint 자동 fix
+  },
+  // 파일 저장 시 EOL 통일 등을 보장
+  "files.eol": "\n"
+}
