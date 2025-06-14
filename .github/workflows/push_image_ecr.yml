@@ -67,4 +67,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION=${{ env.AWS_REGION }}
           AWS_SECRET_ID=${{ secrets.AWS_SECRET_ID }}
+          NEXT_PUBLIC_KIWOOM_CANO=${{ secrets.NEXT_PUBLIC_KIWOOM_CANO }}
+          NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD }}
           

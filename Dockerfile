@@ -27,6 +27,8 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_REGION
 ARG AWS_SECRET_ID
+ARG NEXT_PUBLIC_KIWOOM_CANO
+ARG NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD
 
 ENV KIS_APP_KEY=${KIS_APP_KEY}
 ENV KIS_APP_SECRET=${KIS_APP_SECRET}
@@ -38,8 +40,10 @@ ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 ENV AWS_REGION=${AWS_REGION}
 ENV AWS_SECRET_ID=${AWS_SECRET_ID}
-RUN npm run build                           # next build
+ENV NEXT_PUBLIC_KIWOOM_CANO=${NEXT_PUBLIC_KIWOOM_CANO}
+ENV NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD=${NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD}
 
+RUN npm run build                           # next build
 ###############################################################################
 # 3) runtime — 최종 이미지 (deps + .next + public 등)
 ###############################################################################
