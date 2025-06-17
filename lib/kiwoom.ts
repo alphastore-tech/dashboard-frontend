@@ -34,11 +34,18 @@ export async function getKiwoomAccessToken() {
   // expires_dt 형식: 20250615181054 (YYYYMMDDHHMMSS)
   const expireddt = secretData.expires_dt;
   const year = parseInt(expireddt.substring(0, 4));
-  const month = parseInt(expireddt.substring(4, 6)) - 1; // 월은 0부터 시작
+  const month = parseInt(expireddt.substring(4, 6));
   const day = parseInt(expireddt.substring(6, 8));
   const hour = parseInt(expireddt.substring(8, 10));
   const minute = parseInt(expireddt.substring(10, 12));
   const second = parseInt(expireddt.substring(12, 14));
+
+  console.log('year', year);
+  console.log('month', month);
+  console.log('day', day);
+  console.log('hour', hour);
+  console.log('minute', minute);
+  console.log('second', second);
 
   expiresAt = new Date(year, month, day, hour, minute, second).getTime();
   console.log('expiresAt', expiresAt);
