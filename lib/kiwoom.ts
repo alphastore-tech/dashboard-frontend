@@ -47,7 +47,7 @@ export async function getKiwoomAccessToken() {
   console.log('minute', minute);
   console.log('second', second);
 
-  expiresAt = new Date(year, month, day, hour, minute, second).getTime();
+  expiresAt = Date.UTC(year, month - 1, day, hour - 9, minute, second);
   console.log('expiresAt', expiresAt);
   console.log('Date.now()', Date.now());
   return cachedToken;
