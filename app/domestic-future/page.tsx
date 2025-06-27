@@ -38,6 +38,7 @@ export default function Page() {
     futurePositions = futureData.output1
       .map((o: any) => ({
         symbol: o.prdt_name,
+        divergence: o.divergence,
         side: o.sll_buy_dvsn_name,
         qty: Number(o.cblc_qty),
         avgPrice: Number(o.ccld_avg_unpr1).toLocaleString(),
@@ -157,7 +158,7 @@ export default function Page() {
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
         columns={[
           { header: '종목', accessor: 'symbol' },
-          { header: '매수/매도', accessor: 'side' },
+          { header: '매수/매도', accessor: 'side', align: 'center' },
           { header: '수량', accessor: 'qty', align: 'right' },
           { header: '평균단가', accessor: 'avgPrice', align: 'right' },
           { header: '현재가', accessor: 'currentPrice', align: 'right' },
@@ -176,7 +177,8 @@ export default function Page() {
         title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
         columns={[
           { header: '종목', accessor: 'symbol' },
-          { header: '매수/매도', accessor: 'side' },
+          { header: '괴리율', accessor: 'divergence', align: 'center' },
+          { header: '매수/매도', accessor: 'side', align: 'center' },
           { header: '수량', accessor: 'qty', align: 'right' },
           { header: '평균단가', accessor: 'avgPrice', align: 'right' },
           { header: '현재가', accessor: 'currentPrice', align: 'right' },
