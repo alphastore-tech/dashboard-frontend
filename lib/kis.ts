@@ -173,7 +173,21 @@ export async function fetchFoBalance({
   console.log(res);
 
   if (!res.ok) throw new Error(`FO balance HTTP ${res.status}`);
-  return res.json() as Promise<FoBalanceResponse>;
+  const data = (await res.json()) as FoBalanceResponse;
+
+  if (data.output1.length > 0) {
+    for (const item of data.output1) {
+      try {
+        const divergence = await getDivergenceRate(item.shtn_pdno);
+        item.divergence = divergence;
+      } catch (error) {
+        console.warn(`Failed to get divergence rate for ${item.shtn_pdno}:`, error);
+        item.divergence = '0.00';
+      }
+    }
+  }
+
+  return data;
 }
 
 /* 필요한 필드만 선언 */
@@ -193,6 +207,7 @@ export interface FoBalanceResponse {
     pchs_amt: string; // 매입금액
     evlu_amt: string; // 평가금액
     evlu_pfls_amt: string; // 평가손익금액
+    divergence: string; // 괴리율
   }[];
   output2: {
     prsm_dpast: string; // 추정예탁자산
@@ -354,4 +369,96 @@ export interface FoOrderResponse {
   rt_cd: string;
   msg_cd: string;
   msg1: string;
+}
+
+export async function getFutureOptionPrice(futureCode: string) {
+  const accessToken = await getAccessToken();
+
+  const q = qs.stringify({
+    FID_COND_MRKT_DIV_CODE: 'JF',
+    FID_INPUT_ISCD: futureCode,
+  });
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/quotations/inquire-price?${q}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${accessToken}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'FHMIF10000000',
+        custtype: 'P',
+      },
+      cache: 'no-store',
+    },
+  );
+
+  if (!res.ok) throw new Error(`FO price HTTP ${res.status}`);
+  return res.json() as Promise<FoQuoteResponse>;
+}
+
+export interface FoQuoteResponse {
+  output1: {
+    hts_kor_isnm: string;
+    futs_prpr: string;
+    futs_prdy_vrss: string;
+    prdy_vrss_sign: string;
+    futs_prdy_clpr: string;
+    futs_prdy_ctrt: string;
+    acml_vol: string;
+    acml_tr_pbmn: string;
+    hts_otst_stpl_qty: string;
+    otst_stpl_qty_icdc: string;
+    futs_oprc: string;
+    futs_hgpr: string;
+    futs_lwpr: string;
+    futs_mxpr: string;
+    futs_llam: string;
+    basis: string;
+    futs_sdpr: string;
+    hts_thpr: string;
+    dprt: string; // 괴리율
+    crbr_aply_mxpr: string;
+    crbr_aply_llam: string;
+    futs_last_tr_date: string;
+    hts_rmnn_dynu: string;
+    futs_lstn_medm_hgpr: string;
+    futs_lstn_medm_lwpr: string;
+    delta_val: string;
+    gama: string;
+    theta: string;
+    vega: string;
+    rho: string;
+    hist_vltl: string;
+    hts_ints_vltl: string;
+    mrkt_basis: string;
+    acpr: string;
+  };
+  output2: {
+    bstp_cls_code: string;
+    hts_kor_isnm: string;
+    bstp_nmix_prpr: string;
+    prdy_vrss_sign: string;
+    bstp_nmix_prdy_vrss: string;
+    bstp_nmix_prdy_ctrt: string;
+  };
+  output3: {
+    bstp_cls_code: string;
+    hts_kor_isnm: string;
+    bstp_nmix_prpr: string;
+    prdy_vrss_sign: string;
+    bstp_nmix_prdy_vrss: string;
+    bstp_nmix_prdy_ctrt: string;
+  };
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+}
+
+// 괴리율 조회 전용 함수
+export async function getDivergenceRate(futureCode: string) {
+  const response = await getFutureOptionPrice(futureCode);
+  return response.output1.dprt;
 }
