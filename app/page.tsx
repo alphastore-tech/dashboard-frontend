@@ -3,15 +3,13 @@
  * ---------------------------------------------------
  * Sections
  * 1. Summary & Asset Allocation (2-cols grid)
- * 2. Portfolio Growth (AreaChart)
+ * 2. Growth (AreaChart)
  * 3. Strategy (StrategyCard)
  */
 
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import StatCard from '@/components/StatCard';
 import StrategyCard from '@/components/StrategyCard';
 import { strategies } from '@/components/strategyList';
 import { PieChart, Pie, Cell, Tooltip as RechartTooltip, ResponsiveContainer } from 'recharts';
@@ -31,6 +29,14 @@ const allocationStock = [
   { name: '가치투자', value: 28.4 },
   { name: '주식선물차익거래', value: 18.2 },
   { name: '상한가따라잡기', value: 23.4 },
+];
+
+const analysisMetrics = [
+  { label: 'Total Return', value: '37.77%' },
+  { label: 'CAGR(Annualized)', value: '20.09' },
+  { label: 'Max Drawdown', value: '-10.60%' },
+  { label: 'Volatility', value: '3.53' },
+  { label: 'Sharpe Ratio', value: '1.25' },
 ];
 
 const growthData = Array.from({ length: 60 }).map((_, i) => ({
@@ -109,7 +115,7 @@ export default function OverviewPage() {
         {/* Allocation */}
         <section className="rounded-xl border border-border bg-white p-6 space-y-4 shadow-sm dark:bg-slate-800 dark:border-slate-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Asset Allocation</h2>
+            <h2 className="text-xl font-semibold">Strategy Allocation</h2>
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer>
@@ -134,9 +140,23 @@ export default function OverviewPage() {
         </section>
       </div>
 
-      {/* 2️⃣ Portfolio Growth */}
+      {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Portfolio Growth</h2>
+        <h2 className="text-xl font-semibold">Analysis</h2>
+        {/* 주요 지표 5-col 그리드 */}
+        <div className="grid grid-cols-2 gap-x-12 gap-y-4 sm:grid-cols-3 md:grid-cols-5">
+          {analysisMetrics.map((m) => (
+            <div key={m.label} className="text-center md:text-left">
+              <p className="text-sm text-slate-500">{m.label}</p>
+              <p className="mt-1 text-lg font-semibold">{m.value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 2️⃣ Growth */}
+      <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <h2 className="text-xl font-semibold">Growth</h2>
         <div className="h-64 w-full">
           <ResponsiveContainer>
             <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
