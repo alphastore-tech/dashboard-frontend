@@ -3,8 +3,8 @@
  * ---------------------------------------------------
  * Sections
  * 1. Summary & Asset Allocation (2-cols grid)
- * 2. KPI 카드 모음
- * 3. 전략 리스트
+ * 2. Portfolio Growth (AreaChart)
+ * 3. Strategy (StrategyCard)
  */
 
 'use client';
@@ -15,7 +15,7 @@ import StatCard from '@/components/StatCard';
 import StrategyCard from '@/components/StrategyCard';
 import { strategies } from '@/components/strategyList';
 import { PieChart, Pie, Cell, Tooltip as RechartTooltip, ResponsiveContainer } from 'recharts';
-
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 // ────────────────────────────────────────────────────────────
 // 📊   MOCK DATA
 // ────────────────────────────────────────────────────────────
@@ -33,13 +33,10 @@ const allocationStock = [
   { name: '상한가따라잡기', value: 23.4 },
 ];
 
-const KPI_MOCK = [
-  { label: 'Balance', value: '₩13.6M' },
-  { label: 'Return', value: '12.5%' },
-  { label: 'Sharpe Ratio', value: '1.45' },
-  { label: 'MDD', value: '–8.0%' },
-  { label: 'Volatility', value: '10.2%' },
-];
+const growthData = Array.from({ length: 60 }).map((_, i) => ({
+  day: i,
+  value: 100 + Math.sin(i / 5) * 5 + i * 0.8,
+}));
 
 const PIE_COLORS = [
   '#1e40af',
@@ -61,6 +58,8 @@ const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 // 🖼️   PAGE COMPONENT
 // ────────────────────────────────────────────────────────────
 export default function OverviewPage() {
+  const [viewAs, setViewAs] = useState<'cards' | 'table'>('cards');
+
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
       <h1 className="text-3xl font-bold">안태찬님의 투자 전략</h1>
@@ -135,21 +134,63 @@ export default function OverviewPage() {
         </section>
       </div>
 
-      {/* 2️⃣ KPI 카드 */}
-      <div className="rounded-xl border border-border bg-white p-6 shadow-sm dark:bg-slate-800 dark:border-slate-700">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
-          {KPI_MOCK.map((k) => (
-            <StatCard key={k.label} label={k.label} value={k.value} />
-          ))}
+      {/* 2️⃣ Portfolio Growth */}
+      <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <h2 className="text-xl font-semibold">Portfolio Growth</h2>
+        <div className="h-64 w-full">
+          <ResponsiveContainer>
+            <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#059669" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" hide />
+              <YAxis hide domain={['dataMin', 'dataMax']} />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.05} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#059669"
+                fill="url(#growthGradient)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-      </div>
+      </section>
 
-      {/* 3️⃣ 전략 리스트 */}
-      <div className="divide-y rounded-xl border border-border bg-white shadow-sm dark:bg-slate-800 dark:border-slate-700">
-        {strategies.map((s) => (
-          <StrategyCard key={s.id} strategy={s} />
-        ))}
-      </div>
+      {/* 4️⃣ Strategy */}
+      <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Strategy</h2>
+          <div className="inline-flex overflow-hidden rounded-md border text-sm">
+            <button
+              onClick={() => setViewAs('cards')}
+              className={`px-3 py-1 ${viewAs === 'cards' ? 'bg-slate-100 font-semibold' : 'bg-white'} transition-colors`}
+            >
+              Cards
+            </button>
+            <button
+              onClick={() => setViewAs('table')}
+              className={`px-3 py-1 ${viewAs === 'table' ? 'bg-slate-100 font-semibold' : 'bg-white'} transition-colors`}
+            >
+              Table
+            </button>
+          </div>
+        </div>
+
+        {viewAs === 'cards' && (
+          <div className="grid grid-cols-2 gap-4">
+            {strategies.slice(0, 4).map((s) => (
+              <StrategyCard key={s.id} strategy={s} />
+            ))}
+          </div>
+        )}
+
+        {viewAs === 'table' && <p className="text-sm text-slate-500">테이블 뷰는 준비 중입니다.</p>}
+      </section>
     </main>
   );
 }
