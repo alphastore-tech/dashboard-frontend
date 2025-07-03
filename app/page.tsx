@@ -57,6 +57,29 @@ const PIE_COLORS = [
   '#4338ca',
 ];
 
+const MONTHLY_MOCK = [
+  {
+    year: 2025,
+    months: [-8.31, 8.69, 9.48, -5.26, 12.34, 11.73, -3.22, -8.91, 3.59, 2.05, 9.21, 11.4],
+    annual: 40.0,
+  },
+  {
+    year: 2024,
+    months: [2.39, 12.96, -0.61, -3.32, 12.25, 3.44, -8.11, -4.76, -1.05, -5.46, 9.59, 7.3],
+    annual: 22.33,
+  },
+  {
+    year: 2023,
+    months: [1.6, -9.63, -0.2, 1.56, 12.54, -1.92, 0.57, -1.65, -2.69, -8.16, 2.05, 5.38],
+    annual: -3.13,
+  },
+  {
+    year: 2022,
+    months: [13.4, 11.25, 5.91, -4.72, 0.42, 10.99, 7.94, 14.24, 6.12, -6.9, 4.61, 7.13],
+    annual: 40.0,
+  },
+];
+
 const fmtCur = (n: number) => `₩${n.toLocaleString()}`;
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
 const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
@@ -178,6 +201,57 @@ export default function OverviewPage() {
               />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* 4️⃣ Monthly Details by Year */}
+      <section className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
+        <h2 className="text-xl font-semibold">Monthly Details by Year</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm tracking-tight">
+            <thead className="text-slate-500 border-b">
+              <tr>
+                <th className="px-4 py-2 text-left">년도</th>
+                {[
+                  '1월',
+                  '2월',
+                  '3월',
+                  '4월',
+                  '5월',
+                  '6월',
+                  '7월',
+                  '8월',
+                  '9월',
+                  '10월',
+                  '11월',
+                  '12월',
+                ].map((m) => (
+                  <th key={m} className="px-4 py-2 text-right">
+                    {m}
+                  </th>
+                ))}
+                <th className="px-4 py-2 text-right">ANNUAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MONTHLY_MOCK.map((row) => (
+                <tr key={row.year} className="border-b last:border-0">
+                  <td className="px-4 py-2 font-semibold text-black-600">{row.year}</td>
+                  {row.months.map((v, idx) => (
+                    <td
+                      key={idx}
+                      className={`px-4 py-2 text-right ${Math.abs(v) > 15 ? 'font-semibold' : Math.abs(v) > 10 ? 'font-medium' : 'font-light'} ${color(v)}`}
+                    >
+                      {fmtPct(v)}
+                    </td>
+                  ))}
+                  <td className={`px-4 py-2 text-right font-semibold ${color(row.annual)}`}>
+                    {fmtPct(row.annual)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
