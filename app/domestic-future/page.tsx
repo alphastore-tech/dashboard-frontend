@@ -240,13 +240,14 @@ function renderCell(key: string, value: number) {
   if (key === "amount" || key === "cash") return value.toLocaleString();
   return value;
 }
+
 interface PaginationProps {
   page: number;
   setPage: (page: number) => void;
   totalPages: number;
 }
 
-export function Pagination({ page, setPage, totalPages }: PaginationProps) {
+function Pagination({ page, setPage, totalPages }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const maxNumbersToShow = 5;
