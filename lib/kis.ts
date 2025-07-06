@@ -462,3 +462,111 @@ export async function getDivergenceRate(futureCode: string) {
   const response = await getFutureOptionPrice(futureCode);
   return response.output1.dprt;
 }
+
+// 기간별 매매손익현황 조회 응답 타입
+export interface PeriodTradeProfitLossResponse {
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+  ctx_area_nk100: string;
+  ctx_area_fk100: string;
+  output1: Array<{
+    trad_dt: string; // 매매일자
+    pdno: string; // 상품번호
+    prdt_name: string; // 상품명
+    trad_dvsn_name: string; // 매매구분명
+    loan_dt: string; // 대출일자
+    hldg_qty: string; // 보유수량
+    pchs_unpr: string; // 매입단가
+    buy_qty: string; // 매수수량
+    buy_amt: string; // 매수금액
+    sll_pric: string; // 매도가격
+    sll_qty: string; // 매도수량
+    sll_amt: string; // 매도금액
+    rlzt_pfls: string; // 실현손익
+    pfls_rt: string; // 손익률
+    fee: string; // 수수료
+    tl_tax: string; // 제세금
+    loan_int: string; // 대출이자
+  }>;
+  output2: {
+    sll_qty_smtl: string; // 매도수량합계
+    sll_tr_amt_smtl: string; // 매도거래금액합계
+    sll_fee_smtl: string; // 매도수수료합계
+    sll_tltx_smtl: string; // 매도제세금합계
+    sll_excc_amt_smtl: string; // 매도정산금액합계
+    buyqty_smtl: string; // 매수수량합계
+    buy_tr_amt_smtl: string; // 매수거래금액합계
+    buy_fee_smtl: string; // 매수수수료합계
+    buy_tax_smtl: string; // 매수제세금합계
+    buy_excc_amt_smtl: string; // 매수정산금액합계
+    tot_qty: string; // 총수량
+    tot_tr_amt: string; // 총거래금액
+    tot_fee: string; // 총수수료
+    tot_tltx: string; // 총제세금
+    tot_excc_amt: string; // 총정산금액
+    tot_rlzt_pfls: string; // 총실현손익
+    loan_int: string; // 대출이자
+    tot_pftrt: string; // 총수익률
+  };
+}
+
+/** 기간별 매매손익현황 조회 (TTTC8715R) */
+export async function fetchPeriodTradeProfitLoss({
+  cano,
+  acntPrdtCd,
+  pdno = '',
+  inqrStrtDt,
+  inqrEndDt,
+  sortDvsn = '00',
+  ctxAreaFk100 = '',
+  ctxAreaNk100 = '',
+  cblcDvsn = '00',
+}: {
+  cano: string;
+  acntPrdtCd: string;
+  pdno?: string; // 상품번호 (공란 시 전체)
+  inqrStrtDt: string; // 조회시작일자 (YYYYMMDD)
+  inqrEndDt: string; // 조회종료일자 (YYYYMMDD)
+  sortDvsn?: string; // 정렬구분 (00: 최근순, 01: 과거순, 02: 최근순)
+  ctxAreaFk100?: string; // 연속조회검색조건100
+  ctxAreaNk100?: string; // 연속조회키100
+  cblcDvsn?: string; // 잔고구분 (00: 전체)
+}): Promise<PeriodTradeProfitLossResponse> {
+  const accessToken = await getAccessToken();
+
+  const queryParams = qs.stringify({
+    CANO: cano,
+    SORT_DVSN: sortDvsn,
+    ACNT_PRDT_CD: acntPrdtCd,
+    PDNO: pdno,
+    INQR_STRT_DT: inqrStrtDt,
+    INQR_END_DT: inqrEndDt,
+    CTX_AREA_NK100: ctxAreaNk100,
+    CBLC_DVSN: cblcDvsn,
+    CTX_AREA_FK100: ctxAreaFk100,
+  });
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-stock/v1/trading/inquire-period-trade-profit?${queryParams}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${accessToken}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'TTTC8715R',
+        custtype: 'P',
+      },
+    },
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to fetch period trade profit/loss: HTTP ${res.status} - ${errText}`);
+  }
+
+  const data = await res.json();
+  return data as PeriodTradeProfitLossResponse;
+}
