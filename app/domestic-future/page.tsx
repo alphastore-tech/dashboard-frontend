@@ -9,7 +9,7 @@ import useFoOrders from '@/components/useFoOrders';
 import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const analysisMetrics = [
   { label: 'Total Return', value: '37.77%' },
@@ -117,6 +117,12 @@ function RealizedPnlTable({ data, view, setView }: { data: any[], view: 'Daily' 
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   const totalPages = Math.ceil(data.length / rowsPerPage);
+
+  /* 🔑 view가 바뀔 때마다 page를 1로 리셋 */
+  useEffect(() => {
+    setPage(1);
+  }, [view]);
+
 
   const paged = data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
@@ -320,6 +326,9 @@ function PaginateButton({
 
 function PerformanceContent() {
   const [view, setView] = useState<'Daily' | 'Monthly'>("Daily");
+
+  
+
   /* -------------------------- HUGE MOCK DATA ---------------------------- */
   const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
   const dailyData = useMemo(() => generateDaily(180), []);   // 6 months
