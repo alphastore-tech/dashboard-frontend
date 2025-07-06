@@ -86,13 +86,12 @@ export default function RealizedPnlTable({ data, columns, view, setView }: Reali
     </section>
   );
 }
-
 function renderCell(key: string, value: number) {
-  if (key === 'pnl') {
+  if (key === 'totalPnl' || key === 'stockPnl' || key === 'futurePnl' || key === 'cash_flow') {
     const cls = value > 0 ? 'text-red-500' : value < 0 ? 'text-blue-600' : 'text-gray-600';
     const sign = value >= 0 ? '+' : '';
     return <span className={cls}>{`${sign}${value.toLocaleString()}`}</span>;
   }
-  if (key === 'amount' || key === 'cash') return value.toLocaleString();
+  if (key === 'cash_flow') return value.toLocaleString();
   return value;
 }

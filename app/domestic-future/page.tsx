@@ -54,12 +54,13 @@ const MONTHLY_MOCK = [
 
 const columns = [
   { key: 'date', label: '날짜', align: 'left' as const },
-  { key: 'amount', label: '실현 금액', align: 'right' as const },
-  { key: 'pnl', label: '실현 손익', align: 'right' as const },
-  { key: 'trade', label: '거래 횟수', align: 'right' as const },
-  { key: 'contango', label: '콘탱고 횟수', align: 'right' as const },
-  { key: 'backward', label: '백워데이션 횟수', align: 'right' as const },
-  { key: 'cash', label: '입출금', align: 'right' as const },
+  { key: 'totalPnl', label: '총 손익', align: 'right' as const },
+  { key: 'stockPnl', label: '주식 손익', align: 'right' as const },
+  { key: 'futurePnl', label: '선물 손익', align: 'right' as const },
+  { key: 'trade_count', label: '거래 횟수', align: 'right' as const },
+  { key: 'contango_count', label: '콘탱고 횟수', align: 'right' as const },
+  { key: 'back_count', label: '백워데이션 횟수', align: 'right' as const },
+  { key: 'cash_flow', label: '입출금', align: 'right' as const },
 ];
 
 // Utility functions
@@ -70,7 +71,6 @@ const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 function generateMonthly(n: number) {
   const res = [];
   const today = new Date();
@@ -79,12 +79,13 @@ function generateMonthly(n: number) {
     d.setMonth(d.getMonth() - i);
     const item = {
       date: d.toISOString().slice(0, 7),
-      amount: randomInt(5_000_000, 15_000_000),
-      pnl: randomInt(-500_000, 800_000),
-      trade: randomInt(15, 60),
-      contango: randomInt(0, 10),
-      backward: randomInt(0, 10),
-      cash: randomInt(-1_000_000, 2_000_000),
+      totalPnl: randomInt(-500_000, 800_000),
+      stockPnl: randomInt(-300_000, 500_000),
+      futurePnl: randomInt(-200_000, 300_000),
+      trade_count: randomInt(15, 60),
+      contango_count: randomInt(0, 10),
+      back_count: randomInt(0, 10),
+      cash_flow: randomInt(-1_000_000, 2_000_000),
     };
     res.push(item);
   }
@@ -99,12 +100,13 @@ function generateDaily(n: number) {
     d.setDate(d.getDate() - i);
     const item = {
       date: d.toISOString().slice(0, 10),
-      amount: randomInt(200_000, 600_000),
-      pnl: randomInt(-50_000, 80_000),
-      trade: randomInt(1, 10),
-      contango: randomInt(0, 3),
-      backward: randomInt(0, 3),
-      cash: randomInt(-200_000, 200_000),
+      totalPnl: randomInt(-50_000, 80_000),
+      stockPnl: randomInt(-30_000, 50_000),
+      futurePnl: randomInt(-20_000, 30_000),
+      trade_count: randomInt(1, 10),
+      contango_count: randomInt(0, 3),
+      back_count: randomInt(0, 3),
+      cash_flow: randomInt(-200_000, 200_000),
     };
     res.push(item);
   }
