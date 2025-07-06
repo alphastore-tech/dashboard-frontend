@@ -99,14 +99,136 @@ const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 // ────────────────────────────────────────────────────────────
 // 🖼️   PAGE COMPONENT
 // ────────────────────────────────────────────────────────────
+
+/* -------------------------------------------------------------------------- */
+/*  DATA TABLE + PAGINATION                                                   */
+/* -------------------------------------------------------------------------- */
+const columns = [
+  { key: "date", label: "날짜", align: "left" },
+  { key: "amount", label: "실현 금액" },
+  { key: "pnl", label: "실현 손익" },
+  { key: "trade", label: "거래 횟수" },
+  { key: "contango", label: "콘탱고 횟수" },
+  { key: "backward", label: "백워데이션 횟수" },
+  { key: "cash", label: "입출금" },
+];
+
+function RealizedPnlTable({ data, view, setView }: { data: any[], view: 'Daily' | 'Monthly', setView: (view: 'Daily' | 'Monthly') => void }) {
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+
+  const paged = data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  return (
+    <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{view === "Daily" ? "Daily Details" : "Monthly Details"}</h2>
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          {[
+            { id: 'Daily', label: 'Daily' },
+            { id: 'Monthly', label: 'Monthly' },
+          ].map((btn) => (
+            <button
+              key={btn.id}
+              type="button"
+              className={`px-3 py-1 text-sm border first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                view === btn.id ? 'bg-gray-200 font-semibold' : 'bg-white'
+              }`}
+              onClick={() => setView(btn.id as 'Daily' | 'Monthly')}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full table-fixed text-sm tracking-tight">
+          <thead className="border-b text-slate-500">
+            <tr>
+              {columns.map((c) => (
+                <th key={c.key} className={`px-4 py-2 ${c.align === "left" ? "text-left" : "text-right"}`}>{c.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {paged.map((row, i) => (
+              <tr key={i} className="border-b last:border-0">
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={`px-4 py-2 ${col.align === "left" ? "text-left" : "text-right"}`}
+                  >
+                    {renderCell(col.key, row[col.key])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+    </section>
+  );
+}
+
+function Pagination({ page, totalPages, setPage }: { page: number, totalPages: number, setPage: (page: number) => void }) {
+  if (totalPages <= 1) return null;
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  return (
+    <div className="flex justify-center gap-2 text-sm">
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => setPage(p)}
+          className={`h-8 w-8 rounded-md border ${p === page ? "border-black bg-black text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
+        >
+          {p}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  UTILS                                                                     */
+/* -------------------------------------------------------------------------- */
+function renderCell(key: string, value: any) {
+  if (key === "pnl") {
+    const sign = value >= 0 ? "+" : "";
+    const cls = value > 0 ? "text-red-500" : value < 0 ? "text-blue-600" : "text-gray-600";
+    return <span className={cls}>{sign + value.toFixed(2)}%</span>;
+  }
+  if (key === "amount" || key === "cash") return value.toLocaleString();
+  return value;
+}
+
 function PerformanceContent() {
-  const [viewAs, setViewAs] = useState<'cards' | 'table'>('cards');
+  const [view, setView] = useState<'Daily' | 'Monthly'>("Daily");
+  const monthlyData = [
+    {
+      date: "2025-01",
+      amount: 12000000,
+      pnl: 3.75,
+      trade: 38,
+      contango: 7,
+      backward: 3,
+      cash: 2000000,
+    },
+    { date: "2024-12", amount: 9100000, pnl: -1.37, trade: 24, contango: 5, backward: 2, cash: -500000 },
+    { date: "2024-11", amount: 8150000, pnl: 7.61, trade: 31, contango: 6, backward: 4, cash: 0 },
+  ];
+
+  const dailyData = [
+    { date: "2025-01-15", amount: 350000, pnl: 6.29, trade: 6, contango: 1, backward: 0, cash: 0 },
+    { date: "2025-01-14", amount: 285000, pnl: -2.74, trade: 4, contango: 0, backward: 1, cash: 0 },
+    { date: "2025-01-13", amount: 410000, pnl: 8.05, trade: 7, contango: 2, backward: 1, cash: 100000 },
+  ];
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
-      
-
-      
+  
+    
 
       {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -121,6 +243,9 @@ function PerformanceContent() {
           ))}
         </div>
       </section>
+
+      {/* Data Table (Daily / Monthly) */}
+      <RealizedPnlTable data={view === "Daily" ? dailyData : monthlyData} view={view} setView={setView} />
 
       {/* 2️⃣ Growth */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -199,6 +324,7 @@ function PerformanceContent() {
           </table>
         </div>
       </section>
+   
 
       
     </main>
