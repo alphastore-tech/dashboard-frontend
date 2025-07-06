@@ -512,7 +512,7 @@ export interface PeriodTradeProfitLossResponse {
 }
 
 /** 기간별 매매손익현황 조회 (TTTC8715R) */
-export async function fetchPeriodTradeProfitLoss({
+export async function fetchStockPnl({
   cano,
   acntPrdtCd,
   pdno = '',
@@ -569,4 +569,186 @@ export async function fetchPeriodTradeProfitLoss({
 
   const data = await res.json();
   return data as PeriodTradeProfitLossResponse;
+}
+
+export async function fetchFuturePnl({
+  cano,
+  acntPrdtCd,
+  inqrStrtDay,
+  inqrEndDay,
+  ctxAreaFk200 = '',
+  ctxAreaNk200 = '',
+}: {
+  cano: string;
+  acntPrdtCd: string;
+  inqrStrtDay: string; // YYYYMMDD
+  inqrEndDay: string; // YYYYMMDD
+  ctxAreaFk200?: string;
+  ctxAreaNk200?: string;
+}): Promise<FuturePnlResponse> {
+  const accessToken = await getAccessToken();
+
+  const queryParams = qs.stringify({
+    CANO: cano,
+    ACNT_PRDT_CD: acntPrdtCd,
+    INQR_STRT_DAY: inqrStrtDay,
+    INQR_END_DAY: inqrEndDay,
+    CTX_AREA_FK200: ctxAreaFk200,
+    CTX_AREA_NK200: ctxAreaNk200,
+  });
+
+  const res = await fetch(
+    `${KIS_DOMAIN}/uapi/domestic-futureoption/v1/trading/inquire-daily-amount-fee?${queryParams}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${accessToken}`,
+        appkey: KIS_APP_KEY,
+        appsecret: KIS_APP_SECRET,
+        tr_id: 'CTFO6119R',
+        custtype: 'P',
+      },
+      cache: 'no-store',
+    },
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to fetch future PnL: HTTP ${res.status} - ${errText}`);
+  }
+
+  const data = await res.json();
+  return data as FuturePnlResponse;
+}
+
+export interface FuturePnlResponse {
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+  output1: {
+    ord_dt: string; // 주문일자
+    pdno: string; // 상품번호
+    item_name: string; // 종목명
+    sll_agrm_amt: string; // 매도약정금액
+    sll_fee: string; // 매도수수료
+    buy_agrm_amt: string; // 매수약정금액
+    buy_fee: string; // 매수수수료
+    tot_fee_smtl: string; // 총수수료합계
+    trad_pfls: string; // 매매손익
+  }[];
+  output2: {
+    futr_agrm: string; // 선물약정
+    futr_agrm_amt: string; // 선물약정금액
+    futr_agrm_amt_smtl: string; // 선물약정금액합계
+    futr_sll_fee_smtl: string; // 선물매도수수료합계
+    futr_buy_fee_smtl: string; // 선물매수수수료합계
+    futr_fee_smtl: string; // 선물수수료합계
+    opt_agrm: string; // 옵션약정
+    opt_agrm_amt: string; // 옵션약정금액
+    opt_agrm_amt_smtl: string; // 옵션약정금액합계
+    opt_sll_fee_smtl: string; // 옵션매도수수료합계
+    opt_buy_fee_smtl: string; // 옵션매수수수료합계
+    opt_fee_smtl: string; // 옵션수수료합계
+    prdt_futr_agrm: string; // 상품선물약정
+    prdt_fuop: string; // 상품선물옵션
+    prdt_futr_evlu_amt: string; // 상품선물평가금액
+    futr_fee: string; // 선물수수료
+    opt_fee: string; // 옵션수수료
+    fee: string; // 수수료
+    sll_agrm_amt: string; // 매도약정금액
+    buy_agrm_amt: string; // 매수약정금액
+    agrm_amt_smtl: string; // 약정금액합계
+    sll_fee: string; // 매도수수료
+    buy_fee: string; // 매수수수료
+    fee_smtl: string; // 수수료합계
+    trad_pfls_smtl: string; // 매매손익합계
+  };
+}
+export interface DailyPnlData {
+  date: string;
+  totalPnl: number;
+  stockPnl: number;
+  futurePnl: number;
+  trade_count: number;
+  contango_count: number;
+  back_count: number;
+  cash_flow: number;
+}
+
+export async function fetchPeriodTotalPnl({
+  stock_account,
+  stock_account_prod_code,
+  future_account,
+  future_account_prod_code,
+  startDate,
+  endDate,
+}: {
+  stock_account: string;
+  stock_account_prod_code: string;
+  future_account: string;
+  future_account_prod_code: string;
+  startDate: string;
+  endDate: string;
+  ctxAreaFk100?: string;
+  ctxAreaNk100?: string;
+}): Promise<DailyPnlData[]> {
+  const [stockRes, futureRes] = await Promise.all([
+    fetchStockPnl({
+      cano: stock_account,
+      acntPrdtCd: stock_account_prod_code,
+      pdno: '',
+      inqrStrtDt: startDate,
+      inqrEndDt: endDate,
+    }),
+    fetchFuturePnl({
+      cano: future_account,
+      acntPrdtCd: future_account_prod_code,
+      inqrStrtDay: startDate,
+      inqrEndDay: endDate,
+    }),
+  ]);
+
+  const transactionsByDate = new Map<string, DailyPnlData>();
+
+  const createDayData = (date: string): DailyPnlData => ({
+    date,
+    totalPnl: 0,
+    stockPnl: 0,
+    futurePnl: 0,
+    trade_count: 0,
+    contango_count: 0,
+    back_count: 0,
+    cash_flow: 0,
+  });
+
+  const addTransaction = (date: string, pnl: number, type: 'stock' | 'future') => {
+    if (!transactionsByDate.has(date)) {
+      transactionsByDate.set(date, createDayData(date));
+    }
+
+    const dayData = transactionsByDate.get(date)!;
+    dayData.totalPnl += pnl;
+
+    if (type === 'stock') {
+      dayData.stockPnl += pnl;
+    } else {
+      dayData.futurePnl += pnl;
+    }
+  };
+
+  // Process stock transactions
+  stockRes.output1.forEach((item) => {
+    const pnl = parseFloat(item.rlzt_pfls);
+    addTransaction(item.trad_dt, pnl, 'stock');
+  });
+
+  // Process future transactions
+  futureRes.output1.forEach((item) => {
+    const pnl = parseFloat(item.trad_pfls);
+    addTransaction(item.ord_dt, pnl, 'future');
+  });
+
+  // Convert to array and sort by date
+  return Array.from(transactionsByDate.values()).sort((a, b) => a.date.localeCompare(b.date));
 }
