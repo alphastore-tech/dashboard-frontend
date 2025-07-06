@@ -2,7 +2,7 @@
 
 import StatCard from '@/components/StatCard';
 import DataTable from '@/components/DataTable';
-import Pagination from '@/components/Pagination';
+import RealizedPnlTable from '@/components/RealizedPnlTable';
 import useBalance from '@/components/useBalance';
 import useFoBalance from '@/components/useFoBalance';
 import useOrders from '@/components/useOrders';
@@ -10,7 +10,7 @@ import useFoOrders from '@/components/useFoOrders';
 import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -53,13 +53,13 @@ const MONTHLY_MOCK = [
 ];
 
 const columns = [
-  { key: 'date', label: '날짜', align: 'left' },
-  { key: 'amount', label: '실현 금액' },
-  { key: 'pnl', label: '실현 손익' },
-  { key: 'trade', label: '거래 횟수' },
-  { key: 'contango', label: '콘탱고 횟수' },
-  { key: 'backward', label: '백워데이션 횟수' },
-  { key: 'cash', label: '입출금' },
+  { key: 'date', label: '날짜', align: 'left' as const },
+  { key: 'amount', label: '실현 금액', align: 'right' as const },
+  { key: 'pnl', label: '실현 손익', align: 'right' as const },
+  { key: 'trade', label: '거래 횟수', align: 'right' as const },
+  { key: 'contango', label: '콘탱고 횟수', align: 'right' as const },
+  { key: 'backward', label: '백워데이션 횟수', align: 'right' as const },
+  { key: 'cash', label: '입출금', align: 'right' as const },
 ];
 
 // Utility functions
@@ -111,16 +111,6 @@ function generateDaily(n: number) {
   return res;
 }
 
-function renderCell(key: string, value: number) {
-  if (key === 'pnl') {
-    const cls = value > 0 ? 'text-red-500' : value < 0 ? 'text-blue-600' : 'text-gray-600';
-    const sign = value >= 0 ? '+' : '';
-    return <span className={cls}>{`${sign}${value.toLocaleString()}`}</span>;
-  }
-  if (key === 'amount' || key === 'cash') return value.toLocaleString();
-  return value;
-}
-
 // ────────────────────────────────────────────────────────────
 // 🖼️   PAGE COMPONENT
 // ────────────────────────────────────────────────────────────
@@ -162,87 +152,6 @@ export default function DomesticFuturePage() {
         {activeTab === 'performance' && <PerformanceContent />}
       </section>
     </div>
-  );
-}
-
-function RealizedPnlTable({
-  data,
-  view,
-  setView,
-}: {
-  data: any[];
-  view: 'Daily' | 'Monthly';
-  setView: (view: 'Daily' | 'Monthly') => void;
-}) {
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 10;
-  const totalPages = Math.ceil(data.length / rowsPerPage);
-
-  /* 🔑 view가 바뀔 때마다 page를 1로 리셋 */
-  useEffect(() => {
-    setPage(1);
-  }, [view]);
-
-  const paged = data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  return (
-    <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          {view === 'Daily' ? 'Daily Details' : 'Monthly Details'}
-        </h2>
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          {[
-            { id: 'Daily', label: 'Daily' },
-            { id: 'Monthly', label: 'Monthly' },
-          ].map((btn) => (
-            <button
-              key={btn.id}
-              type="button"
-              className={`px-3 py-1 text-sm border first:rounded-l-md last:rounded-r-md focus:outline-none ${
-                view === btn.id ? 'bg-gray-200 font-semibold' : 'bg-white'
-              }`}
-              onClick={() => setView(btn.id as 'Daily' | 'Monthly')}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full table-fixed text-sm tracking-tight">
-          <thead className="border-b text-slate-500">
-            <tr>
-              {columns.map((c) => (
-                <th
-                  key={c.key}
-                  className={`px-4 py-2 ${c.align === 'left' ? 'text-left' : 'text-right'}`}
-                >
-                  {c.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paged.map((row, i) => (
-              <tr key={i} className="border-b last:border-0">
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={`px-4 py-2 ${col.align === 'left' ? 'text-left' : 'text-right'}`}
-                  >
-                    {renderCell(col.key, row[col.key])}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-10">
-        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-      </div>
-    </section>
   );
 }
 
@@ -496,6 +405,7 @@ function PerformanceContent() {
       {/* Data Table (Daily / Monthly) */}
       <RealizedPnlTable
         data={view === 'Daily' ? dailyData : monthlyData}
+        columns={columns}
         view={view}
         setView={setView}
       />
