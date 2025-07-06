@@ -133,7 +133,7 @@ export async function fetchFoBalance({
   cano,
   acntPrdtCd,
   mgnDiv = '01', // 개시증거금
-  exccStatCd = '2', // 정산가 기준
+  exccStatCd = '2', // 본정산 기준
   ctxAreaFk200 = '',
   ctxAreaNk200 = '',
 }: {
