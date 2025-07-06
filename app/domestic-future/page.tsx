@@ -167,63 +167,162 @@ function RealizedPnlTable({ data, view, setView }: { data: any[], view: 'Daily' 
           </tbody>
         </table>
       </div>
-      <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+      <div className="mt-10">
+        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+      </div>
     </section>
   );
 }
 
-function Pagination({ page, totalPages, setPage }: { page: number, totalPages: number, setPage: (page: number) => void }) {
-  if (totalPages <= 1) return null;
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  return (
-    <div className="flex justify-center gap-2 text-sm">
-      {pages.map((p) => (
-        <button
-          key={p}
-          onClick={() => setPage(p)}
-          className={`h-8 w-8 rounded-md border ${p === page ? "border-black bg-black text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
-        >
-          {p}
-        </button>
-      ))}
-    </div>
-  );
+
+/* -------------------------------------------------------------------------- */
+/*  MOCK DATA GENERATORS                                                      */
+/* -------------------------------------------------------------------------- */
+function generateMonthly(n: number) {
+  const res = [];
+  const today = new Date();
+  for (let i = 0; i < n; i++) {
+    const d = new Date(today);
+    d.setMonth(d.getMonth() - i);
+    const item = {
+      date: d.toISOString().slice(0, 7),
+      amount: randomInt(5_000_000, 15_000_000),
+      pnl: randomInt(-500_000, 800_000),
+      trade: randomInt(15, 60),
+      contango: randomInt(0, 10),
+      backward: randomInt(0, 10),
+      cash: randomInt(-1_000_000, 2_000_000),
+    };
+    res.push(item);
+  }
+  return res;
+}
+
+function generateDaily(n: number) {
+  const res = [];
+  const today = new Date();
+  for (let i = 0; i < n; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const item = {
+      date: d.toISOString().slice(0, 10),
+      amount: randomInt(200_000, 600_000),
+      pnl: randomInt(-50_000, 80_000),
+      trade: randomInt(1, 10),
+      contango: randomInt(0, 3),
+      backward: randomInt(0, 3),
+      cash: randomInt(-200_000, 200_000),
+    };
+    res.push(item);
+  }
+  return res;
+}
+
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /* -------------------------------------------------------------------------- */
-/*  UTILS                                                                     */
+/*  CELL RENDER                                                               */
 /* -------------------------------------------------------------------------- */
-function renderCell(key: string, value: any) {
+function renderCell(key: string, value: number) {
   if (key === "pnl") {
-    const sign = value >= 0 ? "+" : "";
     const cls = value > 0 ? "text-red-500" : value < 0 ? "text-blue-600" : "text-gray-600";
-    return <span className={cls}>{sign + value.toFixed(2)}%</span>;
+    const sign = value >= 0 ? "+" : "";
+    return <span className={cls}>{`${sign}${value.toLocaleString()}`}</span>;
   }
   if (key === "amount" || key === "cash") return value.toLocaleString();
   return value;
 }
+interface PaginationProps {
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
+}
+
+export function Pagination({ page, setPage, totalPages }: PaginationProps) {
+  if (totalPages <= 1) return null;
+
+  const maxNumbersToShow = 5;
+
+  const pageNumbers = useMemo<(number)[]>(() => {
+    if (totalPages <= maxNumbersToShow) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const sibling = Math.floor(maxNumbersToShow / 2);
+    let start = Math.max(1, page - sibling);
+    let end = Math.min(totalPages, page + sibling);
+
+    if (page - 1 <= sibling) end = maxNumbersToShow;
+    if (totalPages - page <= sibling) start = totalPages - maxNumbersToShow + 1;
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [page, totalPages]);
+
+  const goTo = (p: number) => {
+    if (p < 1 || p > totalPages || p === page) return;
+    setPage(p);
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-3 text-base select-none">
+      {/* 이전 */}
+      <PaginateButton label="‹" disabled={page === 1} onClick={() => goTo(page - 1)} />
+
+      {pageNumbers.map((p) => (
+        <PaginateButton
+          key={p}
+          label={p.toString()}
+          active={p === page}
+          onClick={() => goTo(p)}
+        />
+      ))}
+
+      {/* 다음 */}
+      <PaginateButton
+        label="›"
+        disabled={page === totalPages}
+        onClick={() => goTo(page + 1)}
+      />
+    </div>
+  );
+}
+function PaginateButton({
+  label,
+  active = false,
+  disabled = false,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={[
+        "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+        active
+          ? "bg-gray-300 text-black"                   // 선택된 페이지
+          : "text-black hover:bg-gray-100",            // 기본 / hover
+        disabled && "cursor-not-allowed opacity-40 hover:bg-transparent",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {label}
+    </button>
+  );
+}
 
 function PerformanceContent() {
   const [view, setView] = useState<'Daily' | 'Monthly'>("Daily");
-  const monthlyData = [
-    {
-      date: "2025-01",
-      amount: 12000000,
-      pnl: 3.75,
-      trade: 38,
-      contango: 7,
-      backward: 3,
-      cash: 2000000,
-    },
-    { date: "2024-12", amount: 9100000, pnl: -1.37, trade: 24, contango: 5, backward: 2, cash: -500000 },
-    { date: "2024-11", amount: 8150000, pnl: 7.61, trade: 31, contango: 6, backward: 4, cash: 0 },
-  ];
-
-  const dailyData = [
-    { date: "2025-01-15", amount: 350000, pnl: 6.29, trade: 6, contango: 1, backward: 0, cash: 0 },
-    { date: "2025-01-14", amount: 285000, pnl: -2.74, trade: 4, contango: 0, backward: 1, cash: 0 },
-    { date: "2025-01-13", amount: 410000, pnl: 8.05, trade: 7, contango: 2, backward: 1, cash: 100000 },
-  ];
+  /* -------------------------- HUGE MOCK DATA ---------------------------- */
+  const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
+  const dailyData = useMemo(() => generateDaily(180), []);   // 6 months
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
