@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
+import usePeriodPnl from '@/components/usePeriodPnl';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -386,7 +387,23 @@ function PerformanceContent() {
 
   /* -------------------------- HUGE MOCK DATA ---------------------------- */
   const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
-  const dailyData = useMemo(() => generateDaily(180), []); // 6 months
+  // const dailyData = useMemo(() => generateDaily(180), []); // 6 months
+  /* ---------------- “Daily” → 실제 API ---------------------- */
+  const { startDate, endDate } = useMemo(() => {
+    const end   = new Date();                 // 오늘
+    const start = new Date(end);
+    start.setDate(start.getDate() - 80);     // 180일 전(오늘 포함)
+    const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
+    return { startDate: fmt(start), endDate: fmt(end) };
+  }, []);
+
+  const {
+    data: dailyApiData = [],                  // API 결과
+    isLoading: dailyLoading,
+    error: dailyError,
+  } = usePeriodPnl(startDate, endDate);       // 🔹 여기서 호출
+
+
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
@@ -406,10 +423,12 @@ function PerformanceContent() {
 
       {/* Data Table (Daily / Monthly) */}
       <RealizedPnlTable
-        data={view === 'Daily' ? dailyData : monthlyData}
+        data={view === 'Daily' ? dailyApiData : monthlyData}
         columns={columns}
         view={view}
         setView={setView}
+        loading={dailyLoading}
+        error={dailyError}
       />
 
       {/* 2️⃣ Growth */}
