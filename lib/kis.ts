@@ -568,6 +568,8 @@ export async function fetchStockPnl({
   }
 
   const data = await res.json();
+
+  console.log('stockPnlData', data);
   return data as PeriodTradeProfitLossResponse;
 }
 
@@ -619,6 +621,8 @@ export async function fetchFuturePnl({
   }
 
   const data = await res.json();
+
+  console.log('futurePnlData', data);
   return data as FuturePnlResponse;
 }
 
@@ -738,17 +742,21 @@ export async function fetchPeriodTotalPnl({
   };
 
   // Process stock transactions
-  stockRes.output1.forEach((item) => {
-    const pnl = parseFloat(item.rlzt_pfls);
-    addTransaction(item.trad_dt, pnl, 'stock');
-  });
+  if (stockRes?.output1) {
+    stockRes.output1.forEach((item) => {
+      const pnl = parseFloat(item.rlzt_pfls);
+      addTransaction(item.trad_dt, pnl, 'stock');
+    });
+  }
 
   // Process future transactions
-  futureRes.output1.forEach((item) => {
-    const pnl = parseFloat(item.trad_pfls);
-    addTransaction(item.ord_dt, pnl, 'future');
-  });
+  if (futureRes?.output2) {
+    const pnl = parseFloat(futureRes.output2.trad_pfls_smtl);
+    addTransaction(futureRes.output2.trad_pfls_smtl, pnl, 'future');
+  }
 
-  // Convert to array and sort by date
-  return Array.from(transactionsByDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+  const result = Array.from(transactionsByDate.values()).sort((a, b) => b.date.localeCompare(a.date));
+  console.log('result', result);
+
+  return result;
 }
