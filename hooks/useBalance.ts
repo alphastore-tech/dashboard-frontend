@@ -1,4 +1,4 @@
-/* components/useBalance.ts */
+/* hooks/useBalance.ts */
 import useSWR from 'swr';
 import { isMarketOpenKST } from '@/lib/time';
 
