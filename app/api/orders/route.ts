@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { fetchDailyOrders } from '@/lib/kis';
+import { KisClient } from '@/lib/kis/kis_client';
 import dayjs from 'dayjs';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const kisClient = new KisClient();
     const today = dayjs().format('YYYYMMDD');
-    const data = await fetchDailyOrders({
+    const data = await kisClient.fetchDailyOrders({
       cano: process.env.NEXT_PUBLIC_KIS_CANO!,
       acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
       startDate: today,

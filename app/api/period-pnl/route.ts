@@ -2,7 +2,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import dayjs from 'dayjs';
-import { fetchPeriodTotalPnl } from '@/lib/kis';
+import { KisClient } from '@/lib/kis/kis_client';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const pnlData = await fetchPeriodTotalPnl({
+    const kisClient = new KisClient();
+    const pnlData = await kisClient.fetchPeriodTotalPnl({
       stock_account: process.env.NEXT_PUBLIC_KIS_CANO!,
       stock_account_prod_code: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
       future_account: process.env.NEXT_PUBLIC_KIS_CANO!,

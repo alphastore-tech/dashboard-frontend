@@ -1,12 +1,13 @@
 /* app/api/balance/route.ts */
 import { NextResponse } from 'next/server';
-import { fetchBalance } from '@/lib/kis';
+import { KisClient } from '@/lib/kis/kis_client';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const data = await fetchBalance({
+    const kisClient = new KisClient();
+    const data = await kisClient.fetchBalance({
       cano: process.env.NEXT_PUBLIC_KIS_CANO!,
       acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
     });
