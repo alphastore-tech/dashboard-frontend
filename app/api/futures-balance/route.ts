@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchFoBalance } from '@/lib';
+import { fetchFoBalance } from '@/lib/kis';
 
 export const dynamic = 'force-dynamic';
 

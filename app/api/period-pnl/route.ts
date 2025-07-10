@@ -2,7 +2,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import dayjs from 'dayjs';
-import { fetchPeriodTotalPnl } from '@/lib';
+import { fetchPeriodTotalPnl } from '@/lib/kis';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,6 @@
 /* app/api/balance/route.ts */
 import { NextResponse } from 'next/server';
-import { fetchBalance } from '@/lib';
+import { fetchBalance } from '@/lib/kis';
 
 export const dynamic = 'force-dynamic';
 
