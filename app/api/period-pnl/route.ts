@@ -1,7 +1,8 @@
 /* app/api/period-pnl/route.ts */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { fetchPeriodTotalPnl } from '@/lib/kis';
+import dayjs from 'dayjs';
+import { fetchPeriodTotalPnl } from '@/lib';
 
 export const dynamic = 'force-dynamic';
 

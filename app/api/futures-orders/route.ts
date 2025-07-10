@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dayjs from 'dayjs';
-import { fetchFoOrders } from '@/lib/kis';
+import { fetchFoOrders } from '@/lib';
 
 export const dynamic = 'force-dynamic';
 
