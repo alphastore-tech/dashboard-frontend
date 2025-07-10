@@ -15,6 +15,20 @@ export class KisClient {
     this.domain = KIS_DOMAIN;
   }
 
+  /** HTTP 헤더 생성 */
+  private async createHttpHeaders(trId: string, custtype: string = 'P'): Promise<HeadersInit> {
+    const accessToken = await getAccessToken();
+
+    return {
+      'content-type': 'application/json; charset=utf-8',
+      authorization: `Bearer ${accessToken}`,
+      appkey: this.appKey,
+      appsecret: this.appSecret,
+      tr_id: trId,
+      custtype: custtype,
+    };
+  }
+
   /** 주식 잔고 조회 */
   async fetchBalance({
     cano,
@@ -41,17 +55,11 @@ export class KisClient {
       CTX_AREA_NK100: ctxAreaNk100,
     });
 
-    const accessToken = await getAccessToken();
+    const headers = await this.createHttpHeaders('TTTC8434R');
 
     const res = await fetch(`${this.domain}/uapi/domestic-stock/v1/trading/inquire-balance?${q}`, {
       method: 'GET',
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        authorization: `Bearer ${accessToken}`,
-        appkey: this.appKey,
-        appsecret: this.appSecret,
-        tr_id: 'TTTC8434R',
-      },
+      headers,
       cache: 'no-store',
     });
 
@@ -86,19 +94,13 @@ export class KisClient {
       CTX_AREA_NK200: ctxAreaNk200,
     });
 
-    const accessToken = await getAccessToken();
+    const headers = await this.createHttpHeaders('CTFO6118R');
 
     const res = await fetch(
       `${this.domain}/uapi/domestic-futureoption/v1/trading/inquire-balance?${q}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${accessToken}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'CTFO6118R',
-        },
+        headers,
         cache: 'no-store',
       },
     );
@@ -157,20 +159,13 @@ export class KisClient {
       CTX_AREA_NK100: nextNk,
     });
 
-    const accessToken = await getAccessToken();
+    const headers = await this.createHttpHeaders('TTTC0081R');
 
     const res = await fetch(
       `${this.domain}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${accessToken}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'TTTC0081R', // 실전 3개월 이내 / 모의 'VTTC0081R'
-          custtype: 'P',
-        },
+        headers,
         cache: 'no-store',
       },
     );
@@ -212,20 +207,13 @@ export class KisClient {
       CTX_AREA_NK200: nextNk,
     });
 
-    const token = await getAccessToken();
+    const headers = await this.createHttpHeaders('TTTO5201R');
 
     const res = await fetch(
       `${this.domain}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${token}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'TTTO5201R',
-          custtype: 'P',
-        },
+        headers,
         cache: 'no-store',
       },
     );
@@ -238,25 +226,18 @@ export class KisClient {
 
   /** 선물·옵션 가격 조회 */
   async getFutureOptionPrice(futureCode: string): Promise<FoQuoteResponse> {
-    const accessToken = await getAccessToken();
-
     const q = qs.stringify({
       FID_COND_MRKT_DIV_CODE: 'JF',
       FID_INPUT_ISCD: futureCode,
     });
 
+    const headers = await this.createHttpHeaders('FHMIF10000000');
+
     const res = await fetch(
       `${this.domain}/uapi/domestic-futureoption/v1/quotations/inquire-price?${q}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${accessToken}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'FHMIF10000000',
-          custtype: 'P',
-        },
+        headers,
         cache: 'no-store',
       },
     );
@@ -293,8 +274,6 @@ export class KisClient {
     ctxAreaNk100?: string; // 연속조회키100
     cblcDvsn?: string; // 잔고구분 (00: 전체)
   }): Promise<PeriodTradeProfitLossResponse> {
-    const accessToken = await getAccessToken();
-
     const queryParams = qs.stringify({
       CANO: cano,
       SORT_DVSN: sortDvsn,
@@ -307,18 +286,13 @@ export class KisClient {
       CTX_AREA_FK100: ctxAreaFk100,
     });
 
+    const headers = await this.createHttpHeaders('TTTC8715R');
+
     const res = await fetch(
       `${this.domain}/uapi/domestic-stock/v1/trading/inquire-period-trade-profit?${queryParams}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${accessToken}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'TTTC8715R',
-          custtype: 'P',
-        },
+        headers,
       },
     );
 
@@ -349,8 +323,6 @@ export class KisClient {
     ctxAreaFk200?: string;
     ctxAreaNk200?: string;
   }): Promise<FuturePnlResponse> {
-    const accessToken = await getAccessToken();
-
     const queryParams = qs.stringify({
       CANO: cano,
       ACNT_PRDT_CD: acntPrdtCd,
@@ -360,18 +332,13 @@ export class KisClient {
       CTX_AREA_NK200: ctxAreaNk200,
     });
 
+    const headers = await this.createHttpHeaders('CTFO6119R');
+
     const res = await fetch(
       `${this.domain}/uapi/domestic-futureoption/v1/trading/inquire-daily-amount-fee?${queryParams}`,
       {
         method: 'GET',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${accessToken}`,
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          tr_id: 'CTFO6119R',
-          custtype: 'P',
-        },
+        headers,
         cache: 'no-store',
       },
     );
