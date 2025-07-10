@@ -755,7 +755,9 @@ export async function fetchPeriodTotalPnl({
     addTransaction(futureRes.output2.trad_pfls_smtl, pnl, 'future');
   }
 
-  const result = Array.from(transactionsByDate.values()).sort((a, b) => b.date.localeCompare(a.date));
+  const result = Array.from(transactionsByDate.values()).sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
   console.log('result', result);
 
   return result;
