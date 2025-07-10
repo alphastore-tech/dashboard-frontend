@@ -1,13 +1,16 @@
 /* hooks/useKiwoomBalance.ts */
 import useSWR from 'swr';
 import type { KiwoomBalanceResponse } from '@/lib/kiwoom';
+import { isMarketOpenKST } from '@/lib/time';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function useKiwoomBalance() {
+  const marketOpen = isMarketOpenKST(800, 2000);
+
   return useSWR<KiwoomBalanceResponse>('/api/kiwoom/balance', fetcher, {
-    refreshInterval: 30_000,
-    dedupingInterval: 4_000,
+    refreshInterval: marketOpen ? 30_000 : 0,
+    dedupingInterval: 5_000,
     keepPreviousData: true,
   });
 }
