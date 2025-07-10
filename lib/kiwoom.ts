@@ -202,12 +202,22 @@ export interface StockInfoResponse {
   [key: string]: unknown; // 기타 필드 무시
 }
 
+/** 종목코드 ➜ StockInfo */
+let stockCache: Record<string, StockInfoResponse> = {};
+
 /**
  * 종목코드로 업종명(업종대분류)을 반환한다.
  * @param stockCode 6자리 종목코드 (e.g. "005930")
  * @param opts.mock  모의투자 도메인 사용 여부 (기본: false)
  */
 export async function getStockInformation(stockCode: string): Promise<StockInfoResponse | null> {
+  /* 1) 캐시 HIT? */
+  if (stockCache[stockCode]) {
+    console.log('stock cache hit');
+    return stockCache[stockCode];
+  }
+
+  /* 2) MISS 또는 만료 → 원본 API 호출 */
   const accessToken = await getKiwoomAccessToken();
   if (!accessToken) {
     throw new Error('KIWOOM_ACCESS_TOKEN is not set');
@@ -234,6 +244,9 @@ export async function getStockInformation(stockCode: string): Promise<StockInfoR
   console.log(res);
   console.log(res.body);
   const response: StockInfoResponse = await res.json();
+
+  /* 3) 캐시 저장 */
+  stockCache[stockCode] = response;
 
   return response;
 }

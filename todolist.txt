@@ -17,4 +17,6 @@ AWS API call 줄이는 방법 고안
 
 1년 뒤 비용 최적화 고민
 
+Terraform으로 AWS Secret Manager, Lambda, Event Scheduler 처리 자동화 > 앞으로 계좌 변경, 전략 Scale-up 시 편하게 관리할 수 있도록
+
 
