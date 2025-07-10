@@ -7,6 +7,7 @@ import useBalance from '@/hooks/useBalance';
 import useFoBalance from '@/hooks/useFoBalance';
 import useOrders from '@/hooks/useOrders';
 import useFoOrders from '@/hooks/useFoOrders';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
@@ -16,14 +17,6 @@ import usePeriodPnl from '@/hooks/usePeriodPnl';
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
 // ────────────────────────────────────────────────────────────
-
-const analysisMetrics = [
-  { label: 'Total Return', value: '37.77%' },
-  { label: 'CAGR(Annualized)', value: '20.09' },
-  { label: 'Max Drawdown', value: '-10.60%' },
-  { label: 'Volatility', value: '3.53' },
-  { label: 'Sharpe Ratio', value: '1.25' },
-];
 
 const growthData = Array.from({ length: 60 }).map((_, i) => ({
   day: i,
@@ -385,10 +378,13 @@ function MonitorContent() {
 function PerformanceContent() {
   const [view, setView] = useState<'Daily' | 'Monthly'>('Daily');
 
+  // Use the new useAnalysis hook
+  const { data: analysisMetrics, isLoading: analysisLoading, error: analysisError } = useAnalysis();
+
   /* -------------------------- HUGE MOCK DATA ---------------------------- */
   const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
   // const dailyData = useMemo(() => generateDaily(180), []); // 6 months
-  /* ---------------- “Daily” → 실제 API ---------------------- */
+  /* ---------------- "Daily" → 실제 API ---------------------- */
   const { startDate, endDate } = useMemo(() => {
     const end = new Date(); // 오늘
     const start = new Date(end);
