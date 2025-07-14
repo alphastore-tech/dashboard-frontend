@@ -55,15 +55,17 @@ export default function RealizedPnlTable({ data, columns, view, setView, loading
 
       {/* 에러 상태 */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200">
-          <div className="flex">
+        <div className="rounded-xl bg-red-50 p-6 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+            </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                데이터를 불러오는 중 오류가 발생했습니다
+              <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
+                데이터를 불러오는 중 오류가 발생했습니다: {error.message}
               </h3>
-              <div className="mt-2 text-sm text-red-700">
-                {error.message}
-              </div>
             </div>
           </div>
         </div>
@@ -138,11 +140,11 @@ export default function RealizedPnlTable({ data, columns, view, setView, loading
 
 
 function renderCell(key: string, value: number) {
-  if (key === 'totalPnl' || key === 'stockPnl' || key === 'futurePnl' || key === 'cash_flow') {
+  if (key === 'totalPnl' || key === 'stockPnl' || key === 'futurePnl' || key === 'cashFlow') {
     const cls = value > 0 ? 'text-red-500' : value < 0 ? 'text-blue-600' : 'text-gray-600';
     const sign = value >= 0 ? '+' : '';
-    return <span className={cls}>{`${sign}${value.toLocaleString()}`}</span>;
+    return <span className={cls}>{`${sign}${value?.toLocaleString()}`}</span>;
   }
-  if (key === 'cash_flow') return value.toLocaleString();
+  if (key === 'cashFlow') return value.toLocaleString();
   return value;
 }

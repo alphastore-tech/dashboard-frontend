@@ -28,7 +28,7 @@ const fetcher = (url: string) =>
 
 export const useAnalysis = () => {
   const { data, isLoading, error } = useSWR<AnalysisMetric[]>(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/analysis`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/performance_metrics`,
     fetcher,
     {
       // revalidateOnFocus: true, // 기본값이므로 생략 가능

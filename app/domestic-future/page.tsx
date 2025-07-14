@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
-import usePeriodPnl from '@/hooks/usePeriodPnl';
+import { useDailyPeriodPnl , useMonthlyPeriodPnl} from '@/hooks/usePeriodPnl';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -51,10 +51,10 @@ const columns = [
   { key: 'totalPnl', label: '총 손익', align: 'right' as const },
   { key: 'stockPnl', label: '주식 손익', align: 'right' as const },
   { key: 'futurePnl', label: '선물 손익', align: 'right' as const },
-  { key: 'trade_count', label: '거래 횟수', align: 'right' as const },
-  { key: 'contango_count', label: '콘탱고 횟수', align: 'right' as const },
-  { key: 'back_count', label: '백워데이션 횟수', align: 'right' as const },
-  { key: 'cash_flow', label: '입출금', align: 'right' as const },
+  { key: 'tradeCount', label: '거래 횟수', align: 'right' as const },
+  { key: 'contangoCount', label: '콘탱고 횟수', align: 'right' as const },
+  { key: 'backCount', label: '백워데이션 횟수', align: 'right' as const },
+  { key: 'cashFlow', label: '입출금', align: 'right' as const },
 ];
 
 // Utility functions
@@ -76,10 +76,10 @@ function generateMonthly(n: number) {
       totalPnl: randomInt(-500_000, 800_000),
       stockPnl: randomInt(-300_000, 500_000),
       futurePnl: randomInt(-200_000, 300_000),
-      trade_count: randomInt(15, 60),
-      contango_count: randomInt(0, 10),
-      back_count: randomInt(0, 10),
-      cash_flow: randomInt(-1_000_000, 2_000_000),
+      tradeCount: randomInt(15, 60),
+      contangoCount: randomInt(0, 10),
+      backCount: randomInt(0, 10),
+      cashFlow: randomInt(-1_000_000, 2_000_000),
     };
     res.push(item);
   }
@@ -97,10 +97,10 @@ function generateDaily(n: number) {
       totalPnl: randomInt(-50_000, 80_000),
       stockPnl: randomInt(-30_000, 50_000),
       futurePnl: randomInt(-20_000, 30_000),
-      trade_count: randomInt(1, 10),
-      contango_count: randomInt(0, 3),
-      back_count: randomInt(0, 3),
-      cash_flow: randomInt(-200_000, 200_000),
+      tradeCount: randomInt(1, 10),
+      contangoCount: randomInt(0, 3),
+      backCount: randomInt(0, 3),
+      cashFlow: randomInt(-200_000, 200_000),
     };
     res.push(item);
   }
@@ -382,7 +382,7 @@ function PerformanceContent() {
   const { data: analysisMetrics, isLoading: analysisLoading, error: analysisError } = useAnalysis();
 
   /* -------------------------- HUGE MOCK DATA ---------------------------- */
-  const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
+  // const monthlyData = useMemo(() => generateMonthly(36), []); // 3 years
   // const dailyData = useMemo(() => generateDaily(180), []); // 6 months
   /* ---------------- "Daily" → 실제 API ---------------------- */
   const { startDate, endDate } = useMemo(() => {
@@ -397,7 +397,17 @@ function PerformanceContent() {
     data: dailyApiData = [], // API 결과
     isLoading: dailyLoading,
     error: dailyError,
-  } = usePeriodPnl(startDate, endDate); // 🔹 여기서 호출
+  } = useDailyPeriodPnl(); // 🔹 여기서 호출
+
+
+  const {
+    data: monthlyApiData = [], // API 결과
+    isLoading: monthlyLoading,
+    error: monthlyError,
+  } = useMonthlyPeriodPnl(); // 🔹 여기서 호출
+
+  console.log('monthlyApiData', monthlyApiData);
+  console.log('dailyApiData', dailyApiData);
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
@@ -417,12 +427,12 @@ function PerformanceContent() {
 
       {/* Data Table (Daily / Monthly) */}
       <RealizedPnlTable
-        data={view === 'Daily' ? dailyApiData : monthlyData}
+        data={view === 'Daily' ? dailyApiData : monthlyApiData}
         columns={columns}
         view={view}
         setView={setView}
-        loading={dailyLoading}
-        error={dailyError}
+        loading={view === 'Daily' ? dailyLoading : monthlyLoading}
+        error={view === 'Daily' ? dailyError : monthlyError}
       />
 
       {/* 2️⃣ Growth */}
