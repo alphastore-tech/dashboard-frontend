@@ -62,5 +62,5 @@ jobs:
           NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD }}
           NEXT_PUBLIC_KIWOOM_CANO=${{ secrets.NEXT_PUBLIC_KIWOOM_CANO }}
           NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD }}
-          NEXT_PUBLIC_BACKEND_URL="http://backend:8000"
+          NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
           
