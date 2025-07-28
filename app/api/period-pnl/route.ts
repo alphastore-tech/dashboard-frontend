@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const kisClient = new KisClient();
+    const kisClient = new KisClient(process.env.NEXT_PUBLIC_KIS_SPOT_APP_KEY!, process.env.NEXT_PUBLIC_KIS_SPOT_APP_SECRET!, process.env.AWS_SECRET_ID_SPOT!);
     const pnlData = await kisClient.fetchPeriodTotalPnl({
       stock_account: process.env.NEXT_PUBLIC_KIS_CANO!,
       stock_account_prod_code: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,

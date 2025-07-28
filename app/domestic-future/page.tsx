@@ -296,7 +296,7 @@ function MonitorContent() {
 
       {/* 실시간 주식 계좌 잔고 포지션 테이블 (API) */}
       <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
+        title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
         columns={[
           { header: '종목', accessor: 'symbol' },
           { header: '매수/매도', accessor: 'side', align: 'center' },
@@ -335,7 +335,7 @@ function MonitorContent() {
       />
 
       <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
+        title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
         columns={[
           { header: '주문번호', accessor: 'orderNo' },
           { header: '주문시각', accessor: 'orderTime' },

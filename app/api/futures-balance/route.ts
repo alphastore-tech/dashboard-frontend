@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const kisClient = new KisClient();
+    const kisClient = new KisClient(process.env.KIS_APP_KEY!, process.env.KIS_APP_SECRET!, process.env.AWS_SECRET_ID!);
     const data = await kisClient.fetchFoBalance({
       cano: process.env.NEXT_PUBLIC_KIS_CANO!,
       acntPrdtCd: process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD!,

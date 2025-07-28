@@ -20,3 +20,9 @@ AWS API call 줄이는 방법 고안
 Terraform으로 AWS Secret Manager, Lambda, Event Scheduler 처리 자동화 > 앞으로 계좌 변경, 전략 Scale-up 시 편하게 관리할 수 있도록
 
 
+Daily Details 당일은 그냥 polling 방식으로 받아오기 > 
+Monitor 상단 KPI 바뀌어야 할 것 같다.
+당일 실현 손익, 주식 평가금액/(전체 평가금액+예수금) 
+
+주식 계좌도 Scheduler 필요 > Total Return, CAGR, NAV 변화 계산 가능
+
