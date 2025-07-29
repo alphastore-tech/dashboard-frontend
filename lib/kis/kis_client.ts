@@ -2,22 +2,24 @@
 import qs from 'querystring';
 import { getAccessToken } from './kis_auth';
 
-const { KIS_APP_KEY, KIS_APP_SECRET, KIS_DOMAIN } = process.env as Record<string, string>;
+const { KIS_DOMAIN } = process.env as Record<string, string>;
 
 export class KisClient {
   private readonly appKey: string;
   private readonly appSecret: string;
   private readonly domain: string;
+  private readonly awsSecretId: string;
 
-  constructor() {
-    this.appKey = KIS_APP_KEY;
-    this.appSecret = KIS_APP_SECRET;
+  constructor(appKey: string, appSecret: string, awsSecretId: string) {
+    this.appKey = appKey;
+    this.appSecret = appSecret;
     this.domain = KIS_DOMAIN;
+    this.awsSecretId = awsSecretId;
   }
 
   /** HTTP 헤더 생성 */
   private async createHttpHeaders(trId: string, custtype: string = 'P'): Promise<HeadersInit> {
-    const accessToken = await getAccessToken();
+    const accessToken = await getAccessToken(this.awsSecretId);
 
     return {
       'content-type': 'application/json; charset=utf-8',

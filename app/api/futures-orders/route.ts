@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const kisClient = new KisClient();
+    const kisClient = new KisClient(process.env.KIS_APP_KEY!, process.env.KIS_APP_SECRET!, process.env.AWS_SECRET_ID!);
     const today = dayjs().format('YYYYMMDD');
     const data = await kisClient.fetchFoOrders({
       cano: process.env.NEXT_PUBLIC_KIS_CANO!,

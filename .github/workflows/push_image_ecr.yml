@@ -63,4 +63,4 @@ jobs:
           NEXT_PUBLIC_KIWOOM_CANO=${{ secrets.NEXT_PUBLIC_KIWOOM_CANO }}
           NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD=${{ secrets.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD }}
           NEXT_PUBLIC_BACKEND_URL=http://api.alphastore-dashboard.be
-          
+          NEXT_PUBLIC_KIS_SPOT_CANO=73940444
