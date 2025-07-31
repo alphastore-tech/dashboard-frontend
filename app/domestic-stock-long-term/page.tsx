@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import useKiwoomBalance from '@/hooks/useKiwoomBalance';
 import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
 import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
-import { BalanceResponse } from '@/lib/kis/kis_client';
+import { BalanceResponse } from '@/types/api/kis/balance';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🎨  CONSTANTS & HELPERS
