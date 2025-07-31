@@ -127,6 +127,49 @@ export class KisClient {
     return data;
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 🌏  해외주식
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /** 해외주식 잔고 조회 */
+  async fetchOverseasBalance({
+    cano,
+    acntPrdtCd,
+    ovrsExcgCd,
+    trCrcyCd,
+    ctxAreaFk200 = '',
+    ctxAreaNk200 = '',
+  }: {
+    cano: string; // 종합계좌 앞 8자리
+    acntPrdtCd: string; // 계좌 상품 코드 뒤 2자리
+    ovrsExcgCd: string; // 해외거래소 코드 (NASD, NYSE, etc.)
+    trCrcyCd: string; // 거래 통화 코드 (USD, HKD, ...)
+    ctxAreaFk200?: string; // 연속조회검색조건200
+    ctxAreaNk200?: string; // 연속조회키200
+  }): Promise<OverseasBalanceResponse> {
+    const q = qs.stringify({
+      CANO: cano,
+      ACNT_PRDT_CD: acntPrdtCd,
+      OVRS_EXCG_CD: ovrsExcgCd,
+      TR_CRCY_CD: trCrcyCd,
+      CTX_AREA_FK200: ctxAreaFk200,
+      CTX_AREA_NK200: ctxAreaNk200,
+    });
+
+    const headers = await this.createHttpHeaders('TTTS3012R');
+
+    const res = await fetch(`${this.domain}/uapi/overseas-stock/v1/trading/inquire-balance?${q}`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    console.log(res);
+
+    if (!res.ok) throw new Error(`Overseas balance HTTP ${res.status}`);
+    return res.json() as Promise<OverseasBalanceResponse>;
+  }
+
   /** 주식 - 일별 주문·체결 내역 */
   async fetchDailyOrders({
     cano,
@@ -693,4 +736,43 @@ export interface DailyPnlData {
   contango_count: number;
   back_count: number;
   cash_flow: number;
+}
+
+export interface OverseasBalanceResponse {
+  rt_cd: string;
+  msg_cd: string;
+  msg1: string;
+  ctx_area_fk200: string;
+  ctx_area_nk200: string;
+  output1: Array<{
+    cano: string;
+    acnt_prdt_cd: string;
+    prdt_type_cd: string;
+    ovrs_pdno: string;
+    ovrs_item_name: string;
+    frcr_evlu_pfls_amt: string;
+    evlu_pfls_rt: string;
+    pchs_avg_pric: string;
+    ovrs_cblc_qty: string;
+    ord_psbl_qty: string;
+    frcr_pchs_amt1: string;
+    ovrs_stck_evlu_amt: string;
+    now_pric2: string;
+    tr_crcy_cd: string;
+    ovrs_excg_cd: string;
+    loan_type_cd: string;
+    loan_dt: string;
+    expd_dt: string;
+  }>;
+  output2: {
+    frcr_pchs_amt1: string;
+    ovrs_rlzt_pfls_amt: string;
+    ovrs_tot_pfls: string;
+    rlzt_erng_rt: string;
+    tot_evlu_pfls_amt: string;
+    tot_pftrt: string;
+    frcr_buy_amt_smtl1: string;
+    ovrs_rlzt_pfls_amt2: string;
+    frcr_buy_amt_smtl2: string;
+  };
 }
