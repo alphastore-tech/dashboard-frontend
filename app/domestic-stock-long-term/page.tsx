@@ -5,7 +5,7 @@ import SummarySection from '@/components/SummarySection';
 import AssetAllocationSection from '@/components/AssetAllocationSection';
 import { useState, useMemo } from 'react';
 import useKiwoomBalance from '@/hooks/useKiwoomBalance';
-import useKisBalance_73940444 from '@/hooks/useKisBalance_73940444';
+import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
 import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
 import { BalanceResponse } from '@/lib/kis/kis_client';
 
@@ -31,7 +31,7 @@ export default function Page() {
   const [tableTab, setTableTab] = useState<'portfolio' | 'holdings'>('holdings');
 
   const { data: kiwoomData, isLoading: kiwoomLoading, error: kiwoomError } = useKiwoomBalance();
-  const { data: kisData, isLoading: kisLoading, error: kisError } = useKisBalance_73940444();
+  const { data: kisData, isLoading: kisLoading, error: kisError } = useKisBalance_43037074();
 
   // ---------------- Summary computation ----------------
   const summary = useMemo(() => {
@@ -238,7 +238,7 @@ export default function Page() {
 
       {/* ------------------------ Positions Table ------------------------ */}
       <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIWOOM_CANO}-${process.env.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD} & KIS 73940444`}
+        title={`${process.env.NEXT_PUBLIC_KIWOOM_CANO}-${process.env.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD} & ${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
         columns={[
           { header: '종목', accessor: 'symbol' },
           { header: '증권사', accessor: 'broker' },
