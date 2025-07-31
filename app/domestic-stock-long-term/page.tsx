@@ -6,7 +6,7 @@ import AssetAllocationSection from '@/components/AssetAllocationSection';
 import { useState, useMemo } from 'react';
 import useKiwoomBalance from '@/hooks/useKiwoomBalance';
 import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
-import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
+import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/types/api/kiwoom/balance';
 import { BalanceResponse } from '@/types/api/kis/balance';
 
 // ─────────────────────────────────────────────────────────────────────────────

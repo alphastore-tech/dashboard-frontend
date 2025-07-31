@@ -1,17 +1,12 @@
 import 'server-only'; // 이 파일이 클라이언트 번들에 포함되지 않도록
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-
-export interface KiwoomTokenResponse {
-  /** 토큰 만료 일시(ISO 8601 또는 Kiwoom 포맷) */
-  expires_dt: string;
-  /** 일반적으로 "Bearer" */
-  token_type: string;
-  /** 실제 접근 토큰 */
-  token: string;
-
-  return_code: number;
-  return_msg: string;
-}
+import { KiwoomTokenResponse } from '@/types/api/kiwoom/auth';
+import {
+  BalanceRequest,
+  KiwoomBalanceResponse,
+  KiwoomBalanceItem,
+} from '@/types/api/kiwoom/balance';
+import { StockInfoResponse } from '@/types/api/kiwoom/stock';
 
 let cachedToken: string | null = null;
 let expiresAt: number = 0;
@@ -98,33 +93,6 @@ export async function requestKiwoomAccessToken(appKey: string, secretKey: string
 }
 
 /* ----------------------------- 타입 ------------------------------ */
-export interface BalanceRequest {
-  cano: string; // 계좌번호
-  acntPrdtCd: string; // 계좌상품코드
-  qry_tp?: '1' | '2'; // 1:합산, 2:개별 (기본값 1)
-  dmst_stex_tp?: 'KRX' | 'NXT'; // 거래소 (기본값 KRX)
-}
-
-export interface KiwoomBalanceItem {
-  stk_cd: string;
-  stk_nm: string;
-  evltv_prft: string;
-  prft_rt: string;
-  rmnd_qty: string;
-  pur_pric: string;
-  cur_prc: string;
-  poss_rt: string;
-  upName: string;
-}
-
-export interface KiwoomBalanceResponse {
-  tot_pur_amt?: string;
-  tot_evlt_amt?: string;
-  tot_evlt_pl?: string;
-  tot_prft_rt?: string;
-  prsm_dpst_aset_amt?: string;
-  acnt_evlt_remn_indv_tot?: KiwoomBalanceItem[];
-}
 
 /* --------------------------- 메인 함수 --------------------------- */
 export async function fetchKiwoomBalance(req: BalanceRequest): Promise<KiwoomBalanceResponse> {
@@ -194,13 +162,6 @@ export async function fetchKiwoomBalance(req: BalanceRequest): Promise<KiwoomBal
  *      – 응답에 upName 없을 때 → null 반환
  * ---------------------------------------------------------------------------
  */
-
-export interface StockInfoResponse {
-  code?: string; // 종목코드
-  name?: string; // 종목명
-  upName?: string; // 업종명
-  [key: string]: unknown; // 기타 필드 무시
-}
 
 /** 종목코드 ➜ StockInfo */
 let stockCache: Record<string, StockInfoResponse> = {};
