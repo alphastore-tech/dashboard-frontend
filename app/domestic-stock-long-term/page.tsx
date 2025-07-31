@@ -1,247 +1,219 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import DataTable from '@/components/DataTable';
+import SummarySection from '@/components/SummarySection';
+import AssetAllocationSection from '@/components/AssetAllocationSection';
 import { useState, useMemo } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import useKiwoomBalance from '@/hooks/useKiwoomBalance';
-import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/lib/kiwoom';
+import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
+import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/types/api/kiwoom/balance';
+import { BalanceResponse } from '@/types/api/kis/balance';
 
-const PI_CHART_COLORS = [
-  '#1e40af',
-  '#dc2626',
-  '#059669',
-  '#d97706',
-  '#7c3aed',
-  '#db2777',
-  '#0891b2',
-  '#65a30d',
-  '#ea580c',
-  '#4338ca',
-];
-
+// ─────────────────────────────────────────────────────────────────────────────
+// 🎨  CONSTANTS & HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
 const parseNumber = (v?: string | number): number => Number(v ?? 0);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 📚   HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-const fmtCurrency = (n?: number) => {
-  if (n === undefined || n === null || isNaN(n)) return '₩0';
-  return `₩${n.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`;
-};
-
-const fmtSignedCurrency = (n?: number) => {
-  if (n === undefined || n === null || isNaN(n)) return '₩0';
-  return `${n > 0 ? '+' : n < 0 ? '' : ''}${fmtCurrency(Math.abs(n))}`;
-};
+/**
+ * Remove all non-numeric characters except minus and dot and return a number.
+ */
+const cleanNum = (v: string | number): number =>
+  typeof v === 'number' ? v : Number(String(v).replace(/[^\d.-]/g, ''));
 
 const fmtPct = (n: number) => `${n > 0 ? '+' : n < 0 ? '-' : ''}${Math.abs(n).toFixed(2)}%`;
-
-const arrow = (n: number) => (n >= 0 ? '▲' : '▼');
-const colorClass = (n: number) =>
-  n > 0 ? 'text-red-600' : n < 0 ? 'text-blue-600' : 'text-gray-600';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🖼️   PAGE COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-
 export default function Page() {
-  // ---------------- Allocation logic ----------------
+  // ---------------- Hooks ----------------
   const [viewMode, setViewMode] = useState<'stock' | 'sector'>('stock');
   const [tableTab, setTableTab] = useState<'portfolio' | 'holdings'>('holdings');
-  const { data, isLoading, error } = useKiwoomBalance();
+
+  const { data: kiwoomData, isLoading: kiwoomLoading, error: kiwoomError } = useKiwoomBalance();
+  const { data: kisData, isLoading: kisLoading, error: kisError } = useKisBalance_43037074();
+
   // ---------------- Summary computation ----------------
   const summary = useMemo(() => {
-    if (!data) {
-      // default values when loading or no data
-      return {
-        totalAmount: 0,
-        amountChange: 0,
-        amountChangePct: 0,
-        todayPnlAmt: 0,
-        todayPnlPct: 0,
-        totalPnlAmt: 0,
-        totalPnlPct: 0,
-      };
-    }
+    // Kiwoom summary
+    const kiwoomTotAmt = parseNumber((kiwoomData as KiwoomBalanceResponse)?.tot_evlt_amt);
+    const kiwoomPurchaseAmt = parseNumber((kiwoomData as KiwoomBalanceResponse)?.tot_pur_amt);
+    const kiwoomPnlAmt =
+      parseNumber((kiwoomData as KiwoomBalanceResponse)?.tot_evlt_pl) ||
+      kiwoomTotAmt - kiwoomPurchaseAmt;
+    const kiwoomPnlPct = parseNumber((kiwoomData as KiwoomBalanceResponse)?.tot_prft_rt);
 
-    const totalAmount = parseNumber((data as KiwoomBalanceResponse).tot_evlt_amt);
-    const purchaseAmount = parseNumber((data as KiwoomBalanceResponse).tot_pur_amt);
-    const totalPnlAmt =
-      parseNumber((data as KiwoomBalanceResponse).tot_evlt_pl) || totalAmount - purchaseAmount;
-    const totalPnlPct = parseNumber((data as KiwoomBalanceResponse).tot_prft_rt);
+    // KIS summary
+    const kisTotAmt = parseNumber((kisData as BalanceResponse)?.output2?.[0]?.tot_evlu_amt);
+    const kisPurchaseAmt = parseNumber(
+      (kisData as BalanceResponse)?.output2?.[0]?.pchs_amt_smtl_amt,
+    );
+    const kisPnlAmt = parseNumber((kisData as BalanceResponse)?.output2?.[0]?.evlu_pfls_smtl_amt);
+    const kisPnlPct = kisPurchaseAmt ? (kisPnlAmt / kisPurchaseAmt) * 100 : 0;
 
-    // Kiwoom REST does not expose intraday P/L in this endpoint; default to 0.
-    const todayPnlAmt = 0;
-    const todayPnlPct = 0;
+    // Combine
+    const totalAmount = kiwoomTotAmt + kisTotAmt;
+    const totalPurchaseAmt = kiwoomPurchaseAmt + kisPurchaseAmt;
+    const totalPnlAmt = kiwoomPnlAmt + kisPnlAmt;
+    const totalPnlPct = totalPurchaseAmt ? (totalPnlAmt / totalPurchaseAmt) * 100 : 0;
 
+    // Intraday P/L is not available from either endpoint → default 0
     return {
       totalAmount,
       amountChange: totalPnlAmt,
       amountChangePct: totalPnlPct,
-      todayPnlAmt,
-      todayPnlPct,
-      totalPnlAmt,
-      totalPnlPct,
+      todayPnlAmt: 0,
+      todayPnlPct: 0,
+      totalPnlAmt: totalPnlAmt,
+      totalPnlPct: totalPnlPct,
     };
-  }, [data]);
+  }, [kiwoomData, kisData]);
 
+  // ---------------- Positions ----------------
   const positions = useMemo(() => {
-    if (!data || !Array.isArray(data.acnt_evlt_remn_indv_tot)) return [];
+    const pos: {
+      symbol: string;
+      broker: string;
+      sector: string;
+      side: string;
+      qty: number;
+      avgPrice: string;
+      currentPrice: string;
+      purchaseAmount: string;
+      evalAmount: string;
+      plAmount: string;
+      plPercent: string;
+      holdingPercent: number | string;
+    }[] = [];
 
-    return data.acnt_evlt_remn_indv_tot
-      .map((o: KiwoomBalanceItem) => {
-        // ⚠️ Adjust the field names below to match Kiwoom’s exact payload.
-        const qty = Number(o.rmnd_qty ?? 0);
-        const avg = Number(o.pur_pric ?? 0);
-        const current = Number(o.cur_prc ?? 0);
-        const purchaseAmt = Number(avg * qty);
-        const evalAmt = Number(current * qty);
-        const pnlAmt = Number(o.evltv_prft);
-        const pnlPct = Number(o.prft_rt);
-        const holdingPercent = Number(o.poss_rt);
+    // ------- Kiwoom positions -------
+    if (
+      kiwoomData &&
+      Array.isArray((kiwoomData as KiwoomBalanceResponse).acnt_evlt_remn_indv_tot)
+    ) {
+      (kiwoomData as KiwoomBalanceResponse).acnt_evlt_remn_indv_tot
+        ?.filter((o: KiwoomBalanceItem) => Number(o.rmnd_qty ?? 0) > 0)
+        .forEach((o: KiwoomBalanceItem) => {
+          const qty = parseNumber(o.rmnd_qty);
+          const avg = parseNumber(o.pur_pric);
+          const current = parseNumber(o.cur_prc);
+          const purchaseAmt = qty * avg;
+          const evalAmt = qty * current;
+          const pnlAmt = parseNumber(o.evltv_prft);
+          const pnlPct = parseNumber(o.prft_rt);
+          const sector = o.upName ?? '—';
 
-        return {
-          // Render‑ready fields (strings)
-          symbol: o.stk_nm ?? '—',
-          sector: o.upName ?? '—',
-          side: '—',
-          qty,
-          avgPrice: avg.toLocaleString(),
-          currentPrice: current.toLocaleString(),
-          purchaseAmount: purchaseAmt.toLocaleString(),
-          evalAmount: evalAmt.toLocaleString(),
-          plAmount: pnlAmt.toLocaleString(),
-          plPercent: fmtPct(pnlPct),
-          holdingPercent: holdingPercent,
-        };
-      })
-      .filter((p) => p.qty > 0)
-      .sort((a, b) => a.symbol.localeCompare(b.symbol));
-  }, [data]);
+          pos.push({
+            symbol: o.stk_nm ?? '—',
+            broker: '키움',
+            sector,
+            side: '—',
+            qty,
+            avgPrice: avg.toLocaleString(),
+            currentPrice: current.toLocaleString(),
+            purchaseAmount: purchaseAmt.toLocaleString(),
+            evalAmount: evalAmt.toLocaleString(),
+            plAmount: pnlAmt.toLocaleString(),
+            plPercent: fmtPct(pnlPct),
+            holdingPercent: 0, // will be filled later
+          });
+        });
+    }
 
-  const cleanNum = (v: string | number) =>
-    typeof v === 'number' ? v : Number(String(v).replace(/[^\d.-]/g, ''));
+    // ------- KIS positions -------
+    if (kisData && Array.isArray((kisData as BalanceResponse).output1)) {
+      (kisData as BalanceResponse).output1
+        .filter((o) => parseNumber(o.hldg_qty) > 0)
+        .forEach((o) => {
+          const qty = parseNumber(o.hldg_qty);
+          const avg = parseNumber(o.pchs_avg_pric);
+          const current = parseNumber(o.prpr);
+          const purchaseAmt = parseNumber(o.pchs_amt);
+          const evalAmt = parseNumber(o.evlu_amt);
+          const pnlAmt = parseNumber(o.evlu_pfls_amt);
+          const pnlPct = parseNumber(o.evlu_pfls_rt);
+          const sector = '—'; // KIS does not provide sector info in this endpoint
 
-  const allocationStock = positions.map((p) => ({
-    name: p.symbol,
-    value: Number(p.holdingPercent.toFixed(2)),
-  }));
+          pos.push({
+            symbol: o.prdt_name ?? '—',
+            broker: '한국투자', // Assuming KIS is the broker name
+            sector,
+            side: o.trad_dvsn_name ?? '—',
+            qty,
+            avgPrice: avg.toLocaleString(),
+            currentPrice: current.toLocaleString(),
+            purchaseAmount: purchaseAmt.toLocaleString(),
+            evalAmount: evalAmt.toLocaleString(),
+            plAmount: pnlAmt.toLocaleString(),
+            plPercent: fmtPct(pnlPct),
+            holdingPercent: 0, // will be filled later
+          });
+        });
+    }
 
-  const allocationSector = (() => {
-    const bySector: Record<string, number> = {};
-    positions.forEach((p) => {
-      bySector[p.sector] = (bySector[p.sector] ?? 0) + cleanNum(p.holdingPercent);
-    });
-    return Object.entries(bySector).map(([sector, holdingPercent]) => ({
-      name: sector,
-      value: Number(holdingPercent.toFixed(2)),
+    // ------- Calculate holding percentages based on evaluation amount -------
+    const totalEvalAmt = pos.reduce((acc, p) => acc + cleanNum(p.evalAmount), 0);
+    const posWithPct = pos.map((p) => ({
+      ...p,
+      holdingPercent:
+        totalEvalAmt > 0
+          ? `${((cleanNum(p.evalAmount) / totalEvalAmt) * 100).toFixed(2)}%`
+          : '0.00%',
     }));
-  })();
 
-  const allocationData = viewMode === 'stock' ? allocationStock : allocationSector;
+    // Sort by symbol for stable UI
+    return posWithPct.sort((a, b) => a.symbol.localeCompare(b.symbol));
+  }, [kiwoomData, kisData]);
 
-  // ---------------- Render -------------------------
+  // ---------------- Allocation ----------------
+  const allocationData = useMemo(() => {
+    if (!positions.length) return [];
+
+    if (viewMode === 'sector') {
+      // By sector
+      const bySector: Record<string, number> = {};
+      positions.forEach((p) => {
+        const holdingPct =
+          typeof p.holdingPercent === 'string'
+            ? parseFloat(p.holdingPercent.replace('%', ''))
+            : p.holdingPercent;
+        bySector[p.sector] = (bySector[p.sector] ?? 0) + holdingPct;
+      });
+      return Object.entries(bySector).map(([name, value]) => ({
+        name,
+        value: Number(value.toFixed(2)),
+      }));
+    }
+
+    // By stock symbol
+    return positions.map((p) => {
+      const holdingPct =
+        typeof p.holdingPercent === 'string'
+          ? parseFloat(p.holdingPercent.replace('%', ''))
+          : p.holdingPercent;
+      return {
+        name: p.symbol,
+        value: Number(holdingPct.toFixed(2)),
+      };
+    });
+  }, [positions, viewMode]);
+
+  // ---------------- Render ----------------
   return (
     <main className="p-8 space-y-8">
       <h1 className="text-3xl font-bold mb-8">한국 주식 포트폴리오</h1>
 
       {/* Summary + Allocation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Summary */}
-        <section className="bg-white shadow rounded-lg p-6 space-y-6">
-          <h2 className="text-xl font-semibold">Summary</h2>
-
-          {/* Total Amount */}
-          <div>
-            <p className="text-sm font-medium text-gray-600">Total Amount</p>
-            <p className="text-4xl font-bold mt-1">{fmtCurrency(summary.totalAmount)}</p>
-            <div className="flex gap-4 text-sm mt-2">
-              <span className={colorClass(summary.amountChangePct)}>
-                {arrow(summary.amountChangePct)} {fmtPct(summary.amountChangePct)}
-              </span>
-              <span className={colorClass(summary.amountChange)}>
-                {fmtSignedCurrency(summary.amountChange)}
-              </span>
-            </div>
-          </div>
-
-          {/* Today + Total PNL grid */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Today PNL */}
-            <div>
-              <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
-                Today PNL <span className="text-gray-400 text-xs">?</span>
-              </p>
-              <p className={`text-2xl font-bold mt-1 ${colorClass(summary.todayPnlAmt)}`}>
-                {fmtSignedCurrency(summary.todayPnlAmt)}
-              </p>
-              <div className={`text-sm mt-1 ${colorClass(summary.todayPnlPct)}`}>
-                {arrow(summary.todayPnlPct)} {fmtPct(summary.todayPnlPct)}
-              </div>
-            </div>
-
-            {/* Total PNL */}
-            <div>
-              <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
-                Total PNL <span className="text-gray-400 text-xs">?</span>
-              </p>
-              <p className={`text-2xl font-bold mt-1 ${colorClass(summary.totalPnlAmt)}`}>
-                {fmtSignedCurrency(summary.totalPnlAmt)}
-              </p>
-              <div className={`text-sm mt-1 ${colorClass(summary.totalPnlPct)}`}>
-                {arrow(summary.totalPnlPct)} {fmtPct(summary.totalPnlPct)}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Asset Allocation */}
-        <section className="bg-white shadow rounded-lg p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Asset Allocation</h2>
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              {[
-                { id: 'stock', label: 'Stock' },
-                { id: 'sector', label: 'Sector' },
-              ].map((btn) => (
-                <button
-                  key={btn.id}
-                  type="button"
-                  className={`px-3 py-1 text-sm border first:rounded-l-md last:rounded-r-md focus:outline-none ${
-                    viewMode === btn.id ? 'bg-gray-200 font-semibold' : 'bg-white'
-                  }`}
-                  onClick={() => setViewMode(btn.id as 'stock' | 'sector')}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full h-64">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie
-                  data={allocationData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
-                >
-                  {allocationData.map((_, idx) => (
-                    <Cell key={idx} fill={PI_CHART_COLORS[idx % PI_CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: number) => `${v.toFixed(2)}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
+        <SummarySection data={summary} />
+        <AssetAllocationSection
+          data={allocationData}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          showViewToggle={true}
+        />
       </div>
+
       {/* ------------------------ Portfolio / Holdings Header ------------------------ */}
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Portfolio</h2>
@@ -264,11 +236,12 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Positions Table */}
+      {/* ------------------------ Positions Table ------------------------ */}
       <DataTable
-        title={`키움증권 | ${process.env.NEXT_PUBLIC_KIWOOM_CANO}-${process.env.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD}`}
+        title={`${process.env.NEXT_PUBLIC_KIWOOM_CANO}-${process.env.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD} & ${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
         columns={[
           { header: '종목', accessor: 'symbol' },
+          { header: '증권사', accessor: 'broker' },
           { header: '수량', accessor: 'qty', align: 'right' },
           { header: '평균단가', accessor: 'avgPrice', align: 'right' },
           { header: '현재가', accessor: 'currentPrice', align: 'right' },
@@ -279,9 +252,9 @@ export default function Page() {
           { header: '비중', accessor: 'holdingPercent', align: 'right' },
         ]}
         data={positions}
-        loading={isLoading}
+        loading={kiwoomLoading || kisLoading}
         emptyMessage="보유 종목이 없습니다."
-        error={error}
+        error={kiwoomError || kisError}
       />
     </main>
   );
