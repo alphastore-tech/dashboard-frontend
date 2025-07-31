@@ -75,7 +75,7 @@ const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 // ────────────────────────────────────────────────────────────
 export default function OverviewPage() {
   const [viewAs, setViewAs] = useState<'cards' | 'table'>('cards');
-
+  const [viewMode, setViewMode] = useState<'holdings' | 'currency'>('holdings');
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
       <h1 className="text-3xl font-bold">안태찬님의 투자 전략</h1>
@@ -83,7 +83,14 @@ export default function OverviewPage() {
       {/* 1️⃣ Summary + Allocation */}
       <div className="grid gap-6 md:grid-cols-2">
         <SummarySection data={summary} />
-        <AssetAllocationSection data={allocationStock} title="Strategy Allocation" />
+        <AssetAllocationSection
+          data={allocationStock}
+          title="Strategy Allocation"
+          viewMode={viewMode}
+          onViewModeChange={setViewMode as any}
+          showViewToggle={true}
+          viewModeGroup="group2"
+        />
       </div>
 
       {/* 2️⃣ Portfolio Analysis */}
