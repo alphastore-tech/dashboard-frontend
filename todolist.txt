@@ -25,3 +25,5 @@ Monitor 상단 KPI 바뀌어야 할 것 같다.
 당일 실현 손익, 주식 평가금액/(전체 평가금액+예수금) 
 
 주식 계좌도 Scheduler 필요 > Total Return, CAGR, NAV 변화 계산 가능
+
+주식, 선물옵션 주문 API 얼마 이상 되면 잘린다...
