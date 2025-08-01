@@ -28,7 +28,11 @@ export class KisClient {
   }
 
   /** HTTP 헤더 생성 */
-  private async createHttpHeaders(trId: string, custtype: string = 'P'): Promise<HeadersInit> {
+  private async createHttpHeaders(
+    trId: string,
+    custtype: string = 'P',
+    trCont?: string,
+  ): Promise<HeadersInit> {
     const accessToken = await getAccessToken(this.awsSecretId);
 
     return {
@@ -38,6 +42,7 @@ export class KisClient {
       appsecret: this.appSecret,
       tr_id: trId,
       custtype: custtype,
+      tr_cont: trCont || '',
     };
   }
 
@@ -186,8 +191,6 @@ export class KisClient {
     acntPrdtCd,
     startDate,
     endDate,
-    nextFk = '',
-    nextNk = '',
   }: {
     cano: string;
     acntPrdtCd: string;
@@ -196,39 +199,71 @@ export class KisClient {
     nextFk?: string; // 연속조회 검색조건
     nextNk?: string;
   }): Promise<OrderHistoryResponse> {
-    const q = qs.stringify({
-      CANO: cano,
-      ACNT_PRDT_CD: acntPrdtCd,
-      INQR_STRT_DT: startDate,
-      INQR_END_DT: endDate,
-      SLL_BUY_DVSN_CD: '00',
-      PDNO: '',
-      ORD_GNO_BRNO: '',
-      ODNO: '',
-      CCLD_DVSN: '00',
-      INQR_DVSN: '00',
-      INQR_DVSN_1: '',
-      INQR_DVSN_3: '00',
-      EXCG_ID_DVSN_CD: 'KRX',
-      CTX_AREA_FK100: nextFk,
-      CTX_AREA_NK100: nextNk,
-    });
+    const rows: any[] = [];
 
-    const headers = await this.createHttpHeaders('TTTC0081R');
+    let nextFk = '';
+    let nextNk = '';
+    let trCont = ''; // "" → 첫 호출, "N" → 다음 페이지
+    let more = true;
 
-    const res = await fetch(
-      `${this.domain}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`,
-      {
-        method: 'GET',
-        headers,
-        cache: 'no-store',
-      },
-    );
+    // 마지막 페이지의 응답(JSON)을 저장해 둘 변수
+    let lastBody: OrderHistoryResponse | null = null;
+    while (more) {
+      const headers = await this.createHttpHeaders('TTTC0081R', 'P', trCont);
 
-    console.log(res);
+      const q = qs.stringify({
+        CANO: cano,
+        ACNT_PRDT_CD: acntPrdtCd,
+        INQR_STRT_DT: startDate,
+        INQR_END_DT: endDate,
+        SLL_BUY_DVSN_CD: '00',
+        PDNO: '',
+        ORD_GNO_BRNO: '',
+        ODNO: '',
+        CCLD_DVSN: '00',
+        INQR_DVSN: '00',
+        INQR_DVSN_1: '',
+        INQR_DVSN_3: '00',
+        EXCG_ID_DVSN_CD: 'KRX',
+        CTX_AREA_FK100: nextFk,
+        CTX_AREA_NK100: nextNk,
+      });
 
-    if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`);
-    return res.json() as Promise<OrderHistoryResponse>;
+      const res = await fetch(
+        `${this.domain}/uapi/domestic-stock/v1/trading/inquire-daily-ccld?${q}`,
+        { method: 'GET', headers, cache: 'no-store' },
+      );
+      if (!res.ok) throw new Error(`Daily orders HTTP ${res.status}`);
+
+      const body = (await res.json()) as OrderHistoryResponse;
+      lastBody = body; // ← 매번 덮어쓰므로 결국 '마지막 응답'이 남음
+      rows.push(...body.output1); // ← 모든 페이지의 주문·체결 누적
+
+      // 연속 조회 준비
+      const trContRes = res.headers.get('tr_cont'); // F/M: 더 있음, D/E: 끝
+      if (trContRes === 'F' || trContRes === 'M') {
+        trCont = 'N';
+        nextFk = body.ctx_area_fk100.trim();
+        nextNk = body.ctx_area_nk100.trim();
+      } else {
+        more = false;
+      }
+
+      // console.log('trContRes', trContRes);
+      // console.log('nextFk', nextFk);
+      // console.log('nextNk', nextNk);
+      // console.log('trCont', trCont);
+    }
+
+    // lastBody 는 마지막 응답의 ‘껍데기’, rows 는 모든 페이지의 주문·체결
+    if (!lastBody) throw new Error('No data returned from API');
+
+    // console.log('total order rows', rows.slice(0, 2));
+
+    return {
+      ...lastBody,
+      output1: rows, // 주문·체결 내역만 “전 페이지 합본”으로 교체
+    };
   }
 
   /** 선물·옵션 - 일별 주문·체결 내역 */
@@ -237,46 +272,70 @@ export class KisClient {
     acntPrdtCd,
     startDate,
     endDate,
-    nextFk = '',
-    nextNk = '',
   }: {
     cano: string;
     acntPrdtCd: string;
     startDate: string; // YYYYMMDD
     endDate: string; // YYYYMMDD
-    nextFk?: string;
-    nextNk?: string;
   }): Promise<FoOrderResponse> {
-    const q = qs.stringify({
-      CANO: cano,
-      ACNT_PRDT_CD: acntPrdtCd,
-      STRT_ORD_DT: startDate,
-      END_ORD_DT: endDate,
-      SLL_BUY_DVSN_CD: '00',
-      CCLD_NCCS_DVSN: '00',
-      SORT_SQN: 'DS', // 역순
-      STRT_ODNO: '',
-      PDNO: '',
-      MKET_ID_CD: '',
-      CTX_AREA_FK200: nextFk,
-      CTX_AREA_NK200: nextNk,
-    });
+    const rows: any[] = [];
 
-    const headers = await this.createHttpHeaders('TTTO5201R');
+    let nextFk = ''; // ← API가 돌려주는 값을 계속 갱신
+    let nextNk = '';
+    let trCont = ''; // ""→첫 호출, "N"→다음 페이지
+    let more = true;
 
-    const res = await fetch(
-      `${this.domain}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`,
-      {
-        method: 'GET',
-        headers,
-        cache: 'no-store',
-      },
-    );
+    let lastBody: FoOrderResponse | null = null; // 마지막 응답 껍데기
 
-    console.log(res);
+    while (more) {
+      /* 1) 헤더: tr_cont 를 키:값으로 넘겨야 함 */
+      const headers = await this.createHttpHeaders(
+        'TTTO5201R', // 실전 TR
+        'P', // 개인
+        trCont, // "" 또는 "N"
+      );
 
-    if (!res.ok) throw new Error(`FO orders HTTP ${res.status}`);
-    return res.json() as Promise<FoOrderResponse>;
+      /* 2) 쿼리 */
+      const q = qs.stringify({
+        CANO: cano,
+        ACNT_PRDT_CD: acntPrdtCd,
+        STRT_ORD_DT: startDate,
+        END_ORD_DT: endDate,
+        SLL_BUY_DVSN_CD: '00',
+        CCLD_NCCS_DVSN: '00',
+        SORT_SQN: 'DS',
+        STRT_ODNO: '',
+        PDNO: '',
+        MKET_ID_CD: '',
+        CTX_AREA_FK200: nextFk,
+        CTX_AREA_NK200: nextNk,
+      });
+
+      const res = await fetch(
+        `${this.domain}/uapi/domestic-futureoption/v1/trading/inquire-ccnl?${q}`,
+        { method: 'GET', headers, cache: 'no-store' },
+      );
+      if (!res.ok) throw new Error(`FO orders HTTP ${res.status}`);
+
+      const body = (await res.json()) as FoOrderResponse;
+      lastBody = body; // 마지막 응답 보존
+      rows.push(...body.output1); // 전체 주문·체결 누적
+
+      /* 3) 연속조회 체크 */
+      const trContRes = res.headers.get('tr_cont'); // F/M = 더 있음
+      if (trContRes === 'F' || trContRes === 'M') {
+        trCont = 'N'; // 다음 호출부터 'N'
+        nextFk = body.ctx_area_fk200.trim(); // ← 반드시 응답값 사용
+        nextNk = body.ctx_area_nk200.trim();
+      } else {
+        more = false; // 마지막 페이지
+      }
+    }
+
+    if (!lastBody) throw new Error('No data returned from API');
+
+    /* 4) 마지막 응답의 골격 + 합산 output1 */
+    return { ...lastBody, output1: rows };
   }
 
   /** 선물·옵션 가격 조회 */
