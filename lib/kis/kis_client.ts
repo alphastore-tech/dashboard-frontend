@@ -1,6 +1,16 @@
 /* lib/kis/kis_client.ts */
 import qs from 'querystring';
 import { getAccessToken } from './kis_auth';
+import { BalanceResponse } from '@/types/api/kis/balance';
+import { FoBalanceResponse } from '@/types/api/kis/future-balance';
+import { OverseasBalanceResponse } from '@/types/api/kis/overseas-balance';
+import { OrderHistoryResponse, FoOrderResponse } from '@/types/api/kis/order';
+import { FoQuoteResponse } from '@/types/api/kis/quote';
+import {
+  PeriodTradeProfitLossResponse,
+  FuturePnlResponse,
+  DailyPnlData,
+} from '@/types/api/kis/pnl';
 
 const { KIS_DOMAIN } = process.env as Record<string, string>;
 
@@ -125,6 +135,49 @@ export class KisClient {
     }
 
     return data;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 🌏  해외주식
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /** 해외주식 잔고 조회 */
+  async fetchOverseasBalance({
+    cano,
+    acntPrdtCd,
+    ovrsExcgCd,
+    trCrcyCd,
+    ctxAreaFk200 = '',
+    ctxAreaNk200 = '',
+  }: {
+    cano: string; // 종합계좌 앞 8자리
+    acntPrdtCd: string; // 계좌 상품 코드 뒤 2자리
+    ovrsExcgCd: string; // 해외거래소 코드 (NASD, NYSE, etc.)
+    trCrcyCd: string; // 거래 통화 코드 (USD, HKD, ...)
+    ctxAreaFk200?: string; // 연속조회검색조건200
+    ctxAreaNk200?: string; // 연속조회키200
+  }): Promise<OverseasBalanceResponse> {
+    const q = qs.stringify({
+      CANO: cano,
+      ACNT_PRDT_CD: acntPrdtCd,
+      OVRS_EXCG_CD: ovrsExcgCd,
+      TR_CRCY_CD: trCrcyCd,
+      CTX_AREA_FK200: ctxAreaFk200,
+      CTX_AREA_NK200: ctxAreaNk200,
+    });
+
+    const headers = await this.createHttpHeaders('TTTS3012R');
+
+    const res = await fetch(`${this.domain}/uapi/overseas-stock/v1/trading/inquire-balance?${q}`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    console.log(res);
+
+    if (!res.ok) throw new Error(`Overseas balance HTTP ${res.status}`);
+    return res.json() as Promise<OverseasBalanceResponse>;
   }
 
   /** 주식 - 일별 주문·체결 내역 */
@@ -439,258 +492,4 @@ export class KisClient {
 
     return result;
   }
-}
-
-// 타입 정의들
-export interface BalanceResponse {
-  output1: {
-    prdt_name: string; // 종목명
-    trad_dvsn_name: string; // 매수/매도
-    hldg_qty: string; // 잔고수량
-    pchs_avg_pric: string; // 평균매입단가
-    prpr: string; // 현재가
-    pchs_amt: string; // 매입금액
-    evlu_amt: string; // 평가금액
-    evlu_pfls_amt: string; // 평가손익금액
-    evlu_pfls_rt: string; // 평가손익율
-  }[];
-  output2: {
-    tot_evlu_amt: string; // 총평가금액
-    evlu_pfls_smtl_amt: string; // 총평가손익금액
-    pchs_amt_smtl_amt: string; // 총매입금액
-  }[];
-}
-
-export interface FoBalanceResponse {
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-  ctx_area_fk200: string;
-  ctx_area_nk200: string;
-  output1: {
-    shtn_pdno: string; // 단축상품번호
-    prdt_name: string; // 종목명
-    sll_buy_dvsn_name: string; // 매수/매도
-    cblc_qty: string; // 잔고수량
-    ccld_avg_unpr1: string; // 평균단가
-    idx_clpr: string; // 정산단가
-    pchs_amt: string; // 매입금액
-    evlu_amt: string; // 평가금액
-    evlu_pfls_amt: string; // 평가손익금액
-    divergence: string; // 괴리율
-  }[];
-  output2: {
-    prsm_dpast: string; // 추정예탁자산
-    prsm_dpast_amt: string; // 추정예탁자산금액
-    evlu_pfls_amt_smtl: string; // 총평가손익금액
-    pchs_amt_smtl: string; // 총매입금액
-  };
-}
-
-export interface OrderRow {
-  odno: string; // 주문번호
-  ord_tmd: string; // 주문시각
-  prdt_name: string; // 종목명
-  sll_buy_dvsn_cd_name: string; // 매수/매도
-  ord_qty: string; // 주문수량
-  tot_ccld_qty: string; // 총체결수량
-  ord_unpr: string; // 주문가격
-  avg_prvs: string; // 평균체결가격
-  tot_ccld_amt: string; // 총체결금액
-}
-
-export interface OrderHistoryResponse {
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-  output1: OrderRow[];
-  output2: {
-    tot_ord_qty: string;
-    tot_ccld_qty: string;
-    tot_ccld_amt: string;
-  };
-  ctx_area_fk100: string;
-  ctx_area_nk100: string;
-}
-
-export interface FoOrderResponse {
-  output1: {
-    ord_dt: string;
-    prdt_name: string;
-    trad_dvsn_name: string;
-    ord_qty: string;
-    tot_ccld_qty: string;
-    avg_idx: string;
-    tot_ccld_amt: string;
-  }[];
-  output2: {
-    tot_ord_qty: string;
-    tot_ccld_qty_smtl: string;
-    tot_ccld_amt_smtl: string;
-  };
-  ctx_area_fk200: string;
-  ctx_area_nk200: string;
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-}
-
-export interface FoQuoteResponse {
-  output1: {
-    hts_kor_isnm: string;
-    futs_prpr: string;
-    futs_prdy_vrss: string;
-    prdy_vrss_sign: string;
-    futs_prdy_clpr: string;
-    futs_prdy_ctrt: string;
-    acml_vol: string;
-    acml_tr_pbmn: string;
-    hts_otst_stpl_qty: string;
-    otst_stpl_qty_icdc: string;
-    futs_oprc: string;
-    futs_hgpr: string;
-    futs_lwpr: string;
-    futs_mxpr: string;
-    futs_llam: string;
-    basis: string;
-    futs_sdpr: string;
-    hts_thpr: string;
-    dprt: string; // 괴리율
-    crbr_aply_mxpr: string;
-    crbr_aply_llam: string;
-    futs_last_tr_date: string;
-    hts_rmnn_dynu: string;
-    futs_lstn_medm_hgpr: string;
-    futs_lstn_medm_lwpr: string;
-    delta_val: string;
-    gama: string;
-    theta: string;
-    vega: string;
-    rho: string;
-    hist_vltl: string;
-    hts_ints_vltl: string;
-    mrkt_basis: string;
-    acpr: string;
-  };
-  output2: {
-    bstp_cls_code: string;
-    hts_kor_isnm: string;
-    bstp_nmix_prpr: string;
-    prdy_vrss_sign: string;
-    bstp_nmix_prdy_vrss: string;
-    bstp_nmix_prdy_ctrt: string;
-  };
-  output3: {
-    bstp_cls_code: string;
-    hts_kor_isnm: string;
-    bstp_nmix_prpr: string;
-    prdy_vrss_sign: string;
-    bstp_nmix_prdy_vrss: string;
-    bstp_nmix_prdy_ctrt: string;
-  };
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-}
-
-export interface PeriodTradeProfitLossResponse {
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-  ctx_area_nk100: string;
-  ctx_area_fk100: string;
-  output1: Array<{
-    trad_dt: string; // 매매일자
-    pdno: string; // 상품번호
-    prdt_name: string; // 상품명
-    trad_dvsn_name: string; // 매매구분명
-    loan_dt: string; // 대출일자
-    hldg_qty: string; // 보유수량
-    pchs_unpr: string; // 매입단가
-    buy_qty: string; // 매수수량
-    buy_amt: string; // 매수금액
-    sll_pric: string; // 매도가격
-    sll_qty: string; // 매도수량
-    sll_amt: string; // 매도금액
-    rlzt_pfls: string; // 실현손익
-    pfls_rt: string; // 손익률
-    fee: string; // 수수료
-    tl_tax: string; // 제세금
-    loan_int: string; // 대출이자
-  }>;
-  output2: {
-    sll_qty_smtl: string; // 매도수량합계
-    sll_tr_amt_smtl: string; // 매도거래금액합계
-    sll_fee_smtl: string; // 매도수수료합계
-    sll_tltx_smtl: string; // 매도제세금합계
-    sll_excc_amt_smtl: string; // 매도정산금액합계
-    buyqty_smtl: string; // 매수수량합계
-    buy_tr_amt_smtl: string; // 매수거래금액합계
-    buy_fee_smtl: string; // 매수수수료합계
-    buy_tax_smtl: string; // 매수제세금합계
-    buy_excc_amt_smtl: string; // 매수정산금액합계
-    tot_qty: string; // 총수량
-    tot_tr_amt: string; // 총거래금액
-    tot_fee: string; // 총수수료
-    tot_tltx: string; // 총제세금
-    tot_excc_amt: string; // 총정산금액
-    tot_rlzt_pfls: string; // 총실현손익
-    loan_int: string; // 대출이자
-    tot_pftrt: string; // 총수익률
-  };
-}
-
-export interface FuturePnlResponse {
-  rt_cd: string;
-  msg_cd: string;
-  msg1: string;
-  output1: {
-    ord_dt: string; // 주문일자
-    pdno: string; // 상품번호
-    item_name: string; // 종목명
-    sll_agrm_amt: string; // 매도약정금액
-    sll_fee: string; // 매도수수료
-    buy_agrm_amt: string; // 매수약정금액
-    buy_fee: string; // 매수수수료
-    tot_fee_smtl: string; // 총수수료합계
-    trad_pfls: string; // 매매손익
-  }[];
-  output2: {
-    futr_agrm: string; // 선물약정
-    futr_agrm_amt: string; // 선물약정금액
-    futr_agrm_amt_smtl: string; // 선물약정금액합계
-    futr_sll_fee_smtl: string; // 선물매도수수료합계
-    futr_buy_fee_smtl: string; // 선물매수수수료합계
-    futr_fee_smtl: string; // 선물수수료합계
-    opt_agrm: string; // 옵션약정
-    opt_agrm_amt: string; // 옵션약정금액
-    opt_agrm_amt_smtl: string; // 옵션약정금액합계
-    opt_sll_fee_smtl: string; // 옵션매도수수료합계
-    opt_buy_fee_smtl: string; // 옵션매수수수료합계
-    opt_fee_smtl: string; // 옵션수수료합계
-    prdt_futr_agrm: string; // 상품선물약정
-    prdt_fuop: string; // 상품선물옵션
-    prdt_futr_evlu_amt: string; // 상품선물평가금액
-    futr_fee: string; // 선물수수료
-    opt_fee: string; // 옵션수수료
-    fee: string; // 수수료
-    sll_agrm_amt: string; // 매도약정금액
-    buy_agrm_amt: string; // 매수약정금액
-    agrm_amt_smtl: string; // 약정금액합계
-    sll_fee: string; // 매도수수료
-    buy_fee: string; // 매수수수료
-    fee_smtl: string; // 수수료합계
-    trad_pfls_smtl: string; // 매매손익합계
-  };
-}
-
-export interface DailyPnlData {
-  date: string;
-  totalPnl: number;
-  stockPnl: number;
-  futurePnl: number;
-  trade_count: number;
-  contango_count: number;
-  back_count: number;
-  cash_flow: number;
 }
