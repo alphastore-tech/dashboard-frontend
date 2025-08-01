@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import StrategyCard from '@/components/StrategyCard';
 import SummarySection from '@/components/SummarySection';
 import AssetAllocationSection from '@/components/AssetAllocationSection';
@@ -26,11 +26,18 @@ const summary = {
   todayPnlPct: 0,
 };
 
-const allocationStock = [
-  { name: '가치투자', value: 28.4 },
-  { name: '주식선물차익거래', value: 18.2 },
-  { name: '상한가따라잡기', value: 23.4 },
+// Mock holdings data
+const mockHoldings = [
+  { symbol: '국내 장기 투자', amount: 3_200_000, currency: 'KRW' },
+  { symbol: '해외 장기 투자', amount: 2_800, currency: 'USD' },
+  { symbol: '국내 주식 선물 차익거래', amount: 1_900_000, currency: 'KRW' },
 ];
+
+// Mock currency exchange rates
+const exchangeRates = {
+  USD: 1350, // 1 USD = 1350 KRW
+  KRW: 1,
+};
 
 const analysisMetrics = [
   { label: 'Total Return', value: '37.77%' },
@@ -75,6 +82,44 @@ const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 // ────────────────────────────────────────────────────────────
 export default function OverviewPage() {
   const [viewAs, setViewAs] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<'holdings' | 'currency'>('holdings');
+
+  // Calculate allocation data based on viewMode
+  const allocationData = useMemo(() => {
+    if (viewMode === 'currency') {
+      // Group by currency and calculate total amounts
+      const currencyTotals: Record<string, number> = {};
+
+      mockHoldings.forEach((holding) => {
+        const amountInKRW =
+          holding.amount * exchangeRates[holding.currency as keyof typeof exchangeRates];
+        currencyTotals[holding.currency] = (currencyTotals[holding.currency] || 0) + amountInKRW;
+      });
+
+      const totalAmount = Object.values(currencyTotals).reduce((sum, amount) => sum + amount, 0);
+
+      return Object.entries(currencyTotals).map(([currency, amount]) => ({
+        name: currency,
+        value: totalAmount > 0 ? Number(((amount / totalAmount) * 100).toFixed(2)) : 0,
+      }));
+    } else {
+      // Group by holdings (stock symbols)
+      const totalAmount = mockHoldings.reduce((sum, holding) => {
+        const amountInKRW =
+          holding.amount * exchangeRates[holding.currency as keyof typeof exchangeRates];
+        return sum + amountInKRW;
+      }, 0);
+
+      return mockHoldings.map((holding) => {
+        const amountInKRW =
+          holding.amount * exchangeRates[holding.currency as keyof typeof exchangeRates];
+        return {
+          name: holding.symbol,
+          value: totalAmount > 0 ? Number(((amountInKRW / totalAmount) * 100).toFixed(2)) : 0,
+        };
+      });
+    }
+  }, [viewMode]);
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
@@ -83,7 +128,14 @@ export default function OverviewPage() {
       {/* 1️⃣ Summary + Allocation */}
       <div className="grid gap-6 md:grid-cols-2">
         <SummarySection data={summary} />
-        <AssetAllocationSection data={allocationStock} title="Strategy Allocation" />
+        <AssetAllocationSection
+          data={allocationData}
+          title="Strategy Allocation"
+          viewMode={viewMode}
+          onViewModeChange={setViewMode as any}
+          showViewToggle={true}
+          viewModeGroup="group2"
+        />
       </div>
 
       {/* 2️⃣ Portfolio Analysis */}

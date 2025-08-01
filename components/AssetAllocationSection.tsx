@@ -5,13 +5,17 @@ interface AllocationData {
   value: number;
 }
 
-interface AssetAllocationSectionProps {
+type ViewModeGroup1 = 'stock' | 'sector';
+type ViewModeGroup2 = 'holdings' | 'currency';
+
+interface AssetAllocationSectionProps<T extends 'group1' | 'group2' = 'group1'> {
   data: AllocationData[];
   title?: string;
   className?: string;
-  viewMode?: 'stock' | 'sector';
-  onViewModeChange?: (mode: 'stock' | 'sector') => void;
+  viewMode?: T extends 'group1' ? ViewModeGroup1 : ViewModeGroup2;
+  onViewModeChange?: (mode: T extends 'group1' ? ViewModeGroup1 : ViewModeGroup2) => void;
   showViewToggle?: boolean;
+  viewModeGroup?: T;
 }
 
 const PIE_COLORS = [
@@ -27,17 +31,34 @@ const PIE_COLORS = [
   '#4338ca',
 ];
 
-const AssetAllocationSection = ({
+const AssetAllocationSection = <T extends 'group1' | 'group2' = 'group1'>({
   data,
   title = 'Asset Allocation',
   className = '',
   viewMode,
   onViewModeChange,
   showViewToggle = false,
-}: AssetAllocationSectionProps) => {
-  const handleViewModeChange = (mode: 'stock' | 'sector') => {
+  viewModeGroup = 'group1' as T,
+}: AssetAllocationSectionProps<T>) => {
+  const handleViewModeChange = (mode: T extends 'group1' ? ViewModeGroup1 : ViewModeGroup2) => {
     onViewModeChange?.(mode);
   };
+
+  const getViewModeOptions = () => {
+    if (viewModeGroup === 'group1') {
+      return [
+        { id: 'stock', label: 'Stock' },
+        { id: 'sector', label: 'Sector' },
+      ] as const;
+    } else {
+      return [
+        { id: 'holdings', label: 'Holdings' },
+        { id: 'currency', label: 'Currency' },
+      ] as const;
+    }
+  };
+
+  const viewModeOptions = getViewModeOptions();
 
   return (
     <section
@@ -48,17 +69,14 @@ const AssetAllocationSection = ({
 
         {showViewToggle && viewMode && onViewModeChange && (
           <div className="inline-flex rounded-md shadow-sm" role="group">
-            {[
-              { id: 'stock', label: 'Stock' },
-              { id: 'sector', label: 'Sector' },
-            ].map((btn) => (
+            {viewModeOptions.map((btn) => (
               <button
                 key={btn.id}
                 type="button"
                 className={`px-3 py-1 text-sm border first:rounded-l-md last:rounded-r-md focus:outline-none ${
                   viewMode === btn.id ? 'bg-gray-200 font-semibold' : 'bg-white'
                 }`}
-                onClick={() => handleViewModeChange(btn.id as 'stock' | 'sector')}
+                onClick={() => handleViewModeChange(btn.id as any)}
               >
                 {btn.label}
               </button>
