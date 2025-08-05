@@ -12,28 +12,39 @@ interface SummarySectionProps {
   data: SummaryData;
   title?: string;
   className?: string;
+  currency?: 'KRW' | 'USD';
 }
 
-const fmtCur = (n: number) => `₩${n.toLocaleString()}`;
+const fmtCur = (n: number, currency: 'KRW' | 'USD' = 'KRW') => {
+  const symbol = currency === 'USD' ? '$' : '₩';
+  return `${symbol}${n.toLocaleString()}`;
+};
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
 const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 
-const fmtCurrency = (n?: number) => {
-  if (n === undefined || n === null) return '₩0';
-  return `₩${n.toLocaleString()}`;
+const fmtCurrency = (n?: number, currency: 'KRW' | 'USD' = 'KRW') => {
+  if (n === undefined || n === null) return currency === 'USD' ? '$0' : '₩0';
+  const symbol = currency === 'USD' ? '$' : '₩';
+  return `${symbol}${n.toLocaleString()}`;
 };
 
-const fmtSignedCurrency = (n?: number) => {
-  if (n === undefined || n === null) return '₩0';
+const fmtSignedCurrency = (n?: number, currency: 'KRW' | 'USD' = 'KRW') => {
+  if (n === undefined || n === null) return currency === 'USD' ? '$0' : '₩0';
   const sign = n >= 0 ? '+' : '';
-  return `${sign}₩${Math.abs(n).toLocaleString()}`;
+  const symbol = currency === 'USD' ? '$' : '₩';
+  return `${sign}${symbol}${Math.abs(n).toLocaleString()}`;
 };
 
 const arrow = (n: number) => (n >= 0 ? '▲' : '▼');
 const colorClass = (n: number) =>
   n > 0 ? 'text-red-600' : n < 0 ? 'text-blue-600' : 'text-gray-600';
 
-const SummarySection = ({ data, title = 'Summary', className = '' }: SummarySectionProps) => {
+const SummarySection = ({
+  data,
+  title = 'Summary',
+  className = '',
+  currency = 'KRW',
+}: SummarySectionProps) => {
   return (
     <section
       className={`rounded-xl border border-border bg-white p-6 space-y-6 shadow-sm dark:bg-slate-800 dark:border-slate-700 ${className}`}
@@ -43,13 +54,13 @@ const SummarySection = ({ data, title = 'Summary', className = '' }: SummarySect
       {/* Total Amount */}
       <div>
         <p className="text-sm text-slate-500">Total Amount</p>
-        <p className="mt-1 text-4xl font-bold">{fmtCur(data.totalAmount)}</p>
+        <p className="mt-1 text-4xl font-bold">{fmtCur(data.totalAmount, currency)}</p>
         <div className="flex gap-4 mt-2 text-sm">
           <span className={`${color(data.totalPnlPct)} font-medium`}>
             {fmtPct(data.totalPnlPct)}
           </span>
           <span className={`${color(data.totalPnlAmt)} font-medium`}>
-            +{fmtCur(data.totalPnlAmt)}
+            +{fmtCur(data.totalPnlAmt, currency)}
           </span>
         </div>
       </div>
@@ -60,7 +71,7 @@ const SummarySection = ({ data, title = 'Summary', className = '' }: SummarySect
         <div>
           <p className="text-sm text-slate-500">Today PNL</p>
           <p className={`mt-1 text-2xl font-bold ${color(data.todayPnlAmt)}`}>
-            {fmtCur(data.todayPnlAmt)}
+            {fmtCur(data.todayPnlAmt, currency)}
           </p>
           <p className={`text-sm ${color(data.todayPnlPct)}`}>{fmtPct(data.todayPnlPct)}</p>
         </div>
@@ -69,7 +80,7 @@ const SummarySection = ({ data, title = 'Summary', className = '' }: SummarySect
         <div>
           <p className="text-sm text-slate-500">Total PNL</p>
           <p className={`mt-1 text-2xl font-bold ${color(data.totalPnlAmt)}`}>
-            +{fmtCur(data.totalPnlAmt)}
+            +{fmtCur(data.totalPnlAmt, currency)}
           </p>
           <p className={`text-sm ${color(data.totalPnlPct)}`}>{fmtPct(data.totalPnlPct)}</p>
         </div>

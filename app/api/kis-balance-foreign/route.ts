@@ -7,15 +7,20 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const kisClient = new KisClient(
-      process.env.NEXT_PUBLIC_KIS_SPOT_APP_KEY!,
-      process.env.NEXT_PUBLIC_KIS_SPOT_APP_SECRET!,
-      process.env.AWS_SECRET_ID_SPOT!,
+      process.env.KIS_APP_KEY!,
+      process.env.KIS_APP_SECRET!,
+      process.env.AWS_SECRET_ID!,
     );
-    const data = await kisClient.fetchBalance({
-      cano: process.env.NEXT_PUBLIC_KIS_SPOT_CANO!,
+
+    const overseasData = await kisClient.fetchOverseasBalance({
+      cano: process.env.NEXT_PUBLIC_KIS_CANO!,
       acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
+      ovrsExcgCd: 'NASD',
+      trCrcyCd: 'USD',
     });
-    return NextResponse.json(data, { status: 200 });
+    console.log('overseasData', overseasData);
+
+    return NextResponse.json(overseasData, { status: 200 });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ message: err.message }, { status: 500 });
