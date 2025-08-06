@@ -15,6 +15,13 @@ import SummarySection from '@/components/SummarySection';
 import AssetAllocationSection from '@/components/AssetAllocationSection';
 import { strategies } from '@/components/strategyList';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
+import useKisForeignBalance from '@/hooks/useKisForeignBalance';
+import useBalance from '@/hooks/useBalance';
+import useFoBalance from '@/hooks/useFoBalance';
+import { BalanceResponse } from '@/types/api/kis/balance';
+import { OverseasBalanceResponse } from '@/types/api/kis/overseas-balance';
+
 // ────────────────────────────────────────────────────────────
 // 📊   MOCK DATA
 // ────────────────────────────────────────────────────────────
@@ -26,16 +33,9 @@ const summary = {
   todayPnlPct: 0,
 };
 
-// Mock holdings data
-const mockHoldings = [
-  { symbol: '국내 장기 투자', amount: 3_200_000, currency: 'KRW' },
-  { symbol: '해외 장기 투자', amount: 2_800, currency: 'USD' },
-  { symbol: '국내 주식 선물 차익거래', amount: 1_900_000, currency: 'KRW' },
-];
-
 // Mock currency exchange rates
 const exchangeRates = {
-  USD: 1350, // 1 USD = 1350 KRW
+  USD: 1395, // 1 USD = 1350 KRW
   KRW: 1,
 };
 
@@ -84,6 +84,56 @@ export default function OverviewPage() {
   const [viewAs, setViewAs] = useState<'cards' | 'table'>('cards');
   const [viewMode, setViewMode] = useState<'holdings' | 'currency'>('holdings');
 
+  // Fetch KIS balance data
+  const {
+    data: kisData,
+    isLoading: kisLoading,
+    error: kisError,
+  } = useKisBalance_43037074({ polling: false });
+
+  // Fetch KIS foreign balance data
+  const {
+    data: kisForeignData,
+    isLoading: kisForeignLoading,
+    error: kisForeignError,
+  } = useKisForeignBalance({ polling: false });
+
+  // Fetch domestic stock and future balances
+  const { data: balanceData } = useBalance({ polling: false });
+  const { data: foBalanceData } = useFoBalance({ polling: false });
+
+  // Create dynamic mockHoldings based on API data
+  const mockHoldings = useMemo(() => {
+    const domesticAmount =
+      kisData && (kisData as BalanceResponse)?.output2?.[0]?.tot_evlu_amt
+        ? Number((kisData as BalanceResponse)?.output2?.[0]?.tot_evlu_amt)
+        : 0; // fallback to original value if API data is not available
+
+    const foreignAmount =
+      kisForeignData && (kisForeignData as OverseasBalanceResponse)?.output2?.tot_evlu_pfls_amt
+        ? Number((kisForeignData as OverseasBalanceResponse)?.output2?.tot_evlu_pfls_amt)
+        : 0; // fallback to original value if API data is not available
+
+    // 국내 주식 선물 차익거래: useBalance의 tot_evlu_amt + useFoBalance의 prsm_dpast
+    const totEvluAmt = balanceData?.output2?.[0]?.tot_evlu_amt
+      ? Number(balanceData.output2[0].tot_evlu_amt)
+      : 0;
+    const prsmDpast = foBalanceData?.output2?.[0]?.prsm_dpast
+      ? Number(foBalanceData.output2[0].prsm_dpast)
+      : 0;
+    const domesticStockFutureAmount = totEvluAmt + prsmDpast;
+
+    return [
+      { symbol: '국내 장기 투자', amount: domesticAmount, currency: 'KRW' },
+      { symbol: '해외 장기 투자', amount: foreignAmount, currency: 'USD' },
+      {
+        symbol: '국내 주식 선물 차익거래',
+        amount: domesticStockFutureAmount,
+        currency: 'KRW',
+      },
+    ];
+  }, [kisData, kisForeignData, balanceData, foBalanceData]);
+
   // Calculate allocation data based on viewMode
   const allocationData = useMemo(() => {
     if (viewMode === 'currency') {
@@ -119,7 +169,7 @@ export default function OverviewPage() {
         };
       });
     }
-  }, [viewMode]);
+  }, [viewMode, mockHoldings]);
 
   return (
     <main className="mx-auto max-w-7xl p-8 space-y-10">
