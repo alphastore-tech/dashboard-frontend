@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
-import { useDailyPeriodPnl , useMonthlyPeriodPnl} from '@/hooks/usePeriodPnl';
+import { useDailyPeriodPnl, useMonthlyPeriodPnl } from '@/hooks/usePeriodPnl';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -198,7 +198,9 @@ function MonitorContent() {
   const orders =
     orderData?.output1?.map((o: any) => ({
       orderNo: o.odno,
-      orderTime: o.ord_tmd,
+      orderTime: o.ord_tmd
+        ? `${o.ord_tmd.slice(0, 2)}:${o.ord_tmd.slice(2, 4)}:${o.ord_tmd.slice(4, 6)}`
+        : '',
       symbol: o.prdt_name,
       side: o.sll_buy_dvsn_cd_name,
       orderQty: Number(o.ord_qty),
@@ -211,7 +213,9 @@ function MonitorContent() {
   const foOrders =
     foOrderData?.output1?.map((o: any) => ({
       주문번호: o.odno,
-      주문시각: o.ord_dt,
+      주문시각: o.ord_tmd
+        ? `${o.ord_tmd.slice(0, 2)}:${o.ord_tmd.slice(2, 4)}:${o.ord_tmd.slice(4, 6)}`
+        : '',
       종목: o.prdt_name,
       매수매도: o.trad_dvsn_name,
       주문수량: Number(o.ord_qty).toLocaleString(),
@@ -398,7 +402,6 @@ function PerformanceContent() {
     isLoading: dailyLoading,
     error: dailyError,
   } = useDailyPeriodPnl(); // 🔹 여기서 호출
-
 
   const {
     data: monthlyApiData = [], // API 결과
