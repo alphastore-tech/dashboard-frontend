@@ -188,7 +188,7 @@ export default function OverviewPage() {
       </div>
       {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Analysis</h2>
+        <h2 className="text-xl font-semibold">Analysis (Mock)</h2>
         {/* 주요 지표 5-col 그리드 */}
         <div className="grid grid-cols-2 gap-x-12 gap-y-4 sm:grid-cols-3 md:grid-cols-5">
           {analysisMetrics.map((m) => (
@@ -201,7 +201,7 @@ export default function OverviewPage() {
       </section>
       {/* 2️⃣ Growth */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Growth</h2>
+        <h2 className="text-xl font-semibold">Growth (Mock)</h2>
         <div className="w-full h-48 sm:h-56 md:h-64">
           <ResponsiveContainer>
             <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
@@ -227,7 +227,7 @@ export default function OverviewPage() {
       </section>
       {/* 4️⃣ Monthly Details by Year */}
       <section className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Monthly Details by Year</h2>
+        <h2 className="text-xl font-semibold">Monthly Details by Year (Mock)</h2>
         {/* 모바일 전용: 아코디언 카드 */}
         <div className="md:hidden space-y-3">
           {MONTHLY_MOCK.map((row) => (

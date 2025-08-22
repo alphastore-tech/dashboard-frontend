@@ -416,7 +416,7 @@ function PerformanceContent() {
     <main className="mx-auto max-w-7xl p-8 space-y-10">
       {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Analysis</h2>
+        <h2 className="text-xl font-semibold">Analysis (Mock)</h2>
         {/* 주요 지표 5-col 그리드 */}
         <div className="grid grid-cols-2 gap-x-12 gap-y-4 sm:grid-cols-3 md:grid-cols-5">
           {analysisMetrics.map((m) => (
@@ -440,7 +440,7 @@ function PerformanceContent() {
 
       {/* 2️⃣ Growth */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Growth</h2>
+        <h2 className="text-xl font-semibold">Growth (Mock)</h2>
         <div className="h-64 w-full">
           <ResponsiveContainer>
             <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
@@ -467,7 +467,7 @@ function PerformanceContent() {
 
       {/* 4️⃣ Monthly Details by Year */}
       <section className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Monthly Details by Year</h2>
+        <h2 className="text-xl font-semibold">Monthly Details by Year (Mock)</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm tracking-tight">
             <thead className="text-slate-500 border-b">
