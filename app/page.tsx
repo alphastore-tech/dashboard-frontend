@@ -172,11 +172,10 @@ export default function OverviewPage() {
   }, [viewMode, mockHoldings]);
 
   return (
-    <main className="mx-auto max-w-7xl p-8 space-y-10">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       <h1 className="text-3xl font-bold">안태찬님의 투자 전략</h1>
-
       {/* 1️⃣ Summary + Allocation */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <SummarySection data={summary} />
         <AssetAllocationSection
           data={allocationData}
@@ -187,7 +186,6 @@ export default function OverviewPage() {
           viewModeGroup="group2"
         />
       </div>
-
       {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <h2 className="text-xl font-semibold">Analysis</h2>
@@ -201,11 +199,10 @@ export default function OverviewPage() {
           ))}
         </div>
       </section>
-
       {/* 2️⃣ Growth */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <h2 className="text-xl font-semibold">Growth</h2>
-        <div className="h-64 w-full">
+        <div className="w-full h-48 sm:h-56 md:h-64">
           <ResponsiveContainer>
             <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
               <defs>
@@ -228,11 +225,31 @@ export default function OverviewPage() {
           </ResponsiveContainer>
         </div>
       </section>
-
       {/* 4️⃣ Monthly Details by Year */}
       <section className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
         <h2 className="text-xl font-semibold">Monthly Details by Year</h2>
-        <div className="overflow-x-auto">
+        {/* 모바일 전용: 아코디언 카드 */}
+        <div className="md:hidden space-y-3">
+          {MONTHLY_MOCK.map((row) => (
+            <details key={row.year} className="rounded-lg border p-4">
+              <summary className="flex items-center justify-between cursor-pointer">
+                <span className="font-semibold">{row.year}</span>
+                <span className={`text-sm font-semibold ${color(row.annual)}`}>
+                  {fmtPct(row.annual)}
+                </span>
+              </summary>
+              <ul className="mt-3 grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
+                {row.months.map((v, i) => (
+                  <li key={i} className="flex items-center justify-between">
+                    <span>{i + 1}월</span>
+                    <span className={color(v)}>{fmtPct(v)}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
+        </div>
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm tracking-tight">
             <thead className="text-slate-500 border-b">
               <tr>
@@ -279,7 +296,6 @@ export default function OverviewPage() {
           </table>
         </div>
       </section>
-
       {/* 4️⃣ Strategy */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between">
@@ -301,7 +317,7 @@ export default function OverviewPage() {
         </div>
 
         {viewAs === 'cards' && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {strategies.slice(0, 4).map((s) => (
               <StrategyCard key={s.id} strategy={s} />
             ))}
