@@ -16,14 +16,6 @@ export async function GET() {
       acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
     });
 
-    const overseasData = await kisClient.fetchOverseasBalance({
-      cano: process.env.NEXT_PUBLIC_KIS_CANO!,
-      acntPrdtCd: process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD!,
-      ovrsExcgCd: 'USD',
-      trCrcyCd: 'KRW',
-    });
-    console.log('overseasData', overseasData);
-
     return NextResponse.json(data, { status: 200 });
   } catch (err: any) {
     console.error(err);
