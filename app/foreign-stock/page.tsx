@@ -5,6 +5,7 @@ import AssetAllocationSection from '@/components/AssetAllocationSection';
 import { useState, useMemo } from 'react';
 import useKisForeignBalance from '@/hooks/useKisForeignBalance';
 import { OverseasBalanceResponse } from '@/types/api/kis/overseas-balance';
+import MobileTable from '@/components/MobileTable';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🎨  CONSTANTS & HELPERS
@@ -184,25 +185,39 @@ export default function Page() {
       </div>
 
       {/* ------------------------ Positions Table ------------------------ */}
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
-        columns={[
-          { header: '종목', accessor: 'symbol' },
-          { header: '증권사', accessor: 'broker' },
-          { header: '수량', accessor: 'qty', align: 'right' },
-          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
-          { header: '현재가', accessor: 'currentPrice', align: 'right' },
-          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
-          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
-          { header: '손익금액', accessor: 'plAmount', align: 'right' },
-          { header: '수익률', accessor: 'plPercent', align: 'right' },
-          { header: '비중', accessor: 'holdingPercent', align: 'right' },
-        ]}
-        data={positions}
-        loading={kisLoading}
-        emptyMessage="보유 종목이 없습니다."
-        error={kisError}
-      />
+      <div className="hidden sm:block">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
+          columns={[
+            { header: '종목', accessor: 'symbol' },
+            { header: '증권사', accessor: 'broker' },
+            { header: '수량', accessor: 'qty', align: 'right' },
+            { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+            { header: '현재가', accessor: 'currentPrice', align: 'right' },
+            { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+            { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+            { header: '손익금액', accessor: 'plAmount', align: 'right' },
+            { header: '수익률', accessor: 'plPercent', align: 'right' },
+            { header: '비중', accessor: 'holdingPercent', align: 'right' },
+          ]}
+          data={positions}
+          loading={kisLoading}
+          emptyMessage="보유 종목이 없습니다."
+          error={kisError}
+        />
+      </div>
+
+      {/* ------------------------ Mobile Table ------------------------ */}
+      <div className="sm:hidden">
+        <MobileTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
+          data={positions}
+          loading={kisLoading}
+          emptyMessage="보유 종목이 없습니다."
+          error={kisError}
+          currency="USD"
+        />
+      </div>
     </main>
   );
 }
