@@ -8,6 +8,7 @@ import useKiwoomBalance from '@/hooks/useKiwoomBalance';
 import useKisBalance_43037074 from '@/hooks/useKisBalance_43037074';
 import { KiwoomBalanceItem, KiwoomBalanceResponse } from '@/types/api/kiwoom/balance';
 import { BalanceResponse } from '@/types/api/kis/balance';
+import MobileTable from '@/components/MobileTable';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🎨  CONSTANTS & HELPERS
@@ -236,26 +237,40 @@ export default function Page() {
         </div>
       </div>
 
-      {/* ------------------------ Positions Table ------------------------ */}
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIWOOM_CANO}-${process.env.NEXT_PUBLIC_KIWOOM_ACNT_PRDT_CD} & ${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
-        columns={[
-          { header: '종목', accessor: 'symbol' },
-          { header: '증권사', accessor: 'broker' },
-          { header: '수량', accessor: 'qty', align: 'right' },
-          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
-          { header: '현재가', accessor: 'currentPrice', align: 'right' },
-          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
-          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
-          { header: '손익금액', accessor: 'plAmount', align: 'right' },
-          { header: '수익률', accessor: 'plPercent', align: 'right' },
-          { header: '비중', accessor: 'holdingPercent', align: 'right' },
-        ]}
-        data={positions}
-        loading={kiwoomLoading || kisLoading}
-        emptyMessage="보유 종목이 없습니다."
-        error={kiwoomError || kisError}
-      />
+      {/* 데스크톱: 테이블 */}
+      <div className="hidden sm:block">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
+          columns={[
+            { header: '종목', accessor: 'symbol' },
+            { header: '증권사', accessor: 'broker' },
+            { header: '수량', accessor: 'qty', align: 'right' },
+            { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+            { header: '현재가', accessor: 'currentPrice', align: 'right' },
+            { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+            { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+            { header: '손익금액', accessor: 'plAmount', align: 'right' },
+            { header: '수익률', accessor: 'plPercent', align: 'right' },
+            { header: '비중', accessor: 'holdingPercent', align: 'right' },
+          ]}
+          data={positions}
+          loading={kiwoomLoading || kisLoading}
+          emptyMessage="보유 종목이 없습니다."
+          error={kiwoomError || kisError}
+        />
+      </div>
+
+      {/* 모바일: 사진과 동일한 리스트형 */}
+      <div className="sm:hidden">
+        <MobileTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD}`}
+          data={positions}
+          loading={kiwoomLoading || kisLoading}
+          emptyMessage="보유 종목이 없습니다."
+          error={kiwoomError || kisError}
+          currency="KRW"
+        />
+      </div>
     </main>
   );
 }
