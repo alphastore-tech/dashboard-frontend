@@ -28,6 +28,11 @@ export default function RealizedPnlTable({
   const rowsPerPage = 10;
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
+  // 📱 모바일에서만 보여줄 컬럼 키
+  const MOBILE_VISIBLE_KEYS = new Set(['date', 'totalPnl', 'stockPnl', 'futurePnl']);
+  const colVisibilityClass = (key: string) =>
+    MOBILE_VISIBLE_KEYS.has(key) ? '' : 'hidden sm:table-cell';
+
   /* 🔑 view가 바뀔 때마다 page를 1로 리셋 */
   useEffect(() => {
     setPage(1);
@@ -39,7 +44,11 @@ export default function RealizedPnlTable({
     <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">
-          {view === 'Daily' ? 'Daily Details' : 'Monthly Details'}
+          {/* 모바일: Details / 데스크톱: Daily/Monthly Details */}
+          <span className="sm:hidden">Details</span>
+          <span className="hidden sm:inline">
+            {view === 'Daily' ? 'Daily Details' : 'Monthly Details'}
+          </span>
         </h2>
         <div className="inline-flex rounded-md shadow-sm" role="group">
           {[
@@ -122,12 +131,12 @@ export default function RealizedPnlTable({
         <>
           <div className="overflow-x-auto">
             <table className="w-full table-fixed text-sm tracking-tight">
-              <thead className="border-b text-slate-500">
+              <thead className="border-b text-slate-500 text-[10px] sm:text-sm">
                 <tr>
                   {columns.map((c) => (
                     <th
                       key={c.key}
-                      className={`px-4 py-2 ${c.align === 'left' ? 'text-left' : 'text-right'}`}
+                      className={`px-4 py-2 ${c.align === 'left' ? 'text-left' : 'text-right'} ${colVisibilityClass(c.key)}`}
                     >
                       {c.label}
                     </th>
@@ -140,7 +149,7 @@ export default function RealizedPnlTable({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`px-4 py-2 ${col.align === 'left' ? 'text-left' : 'text-right'}`}
+                        className={`px-4 py-2 ${col.align === 'left' ? 'text-left' : 'text-right'} ${colVisibilityClass(col.key)}`}
                       >
                         {renderCell(col.key, row[col.key])}
                       </td>
