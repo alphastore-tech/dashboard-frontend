@@ -120,14 +120,14 @@ export default function DomesticFuturePage() {
   ];
 
   return (
-    <div className="w-full border-b border-gray-200">
+    <div className="w-full border-b border-gray-200 dark:border-slate-700">
       {/* Tab header */}
-      <nav className="flex space-x-8 px-6">
+      <nav className="flex space-x-6 px-4 sm:px-6 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="relative py-4 text-base font-medium outline-none"
+            className="relative py-4 text-base font-medium outline-none whitespace-nowrap"
           >
             {/* Tab label */}
             <span className={activeTab === tab.id ? 'text-black' : 'text-gray-400'}>
@@ -143,7 +143,7 @@ export default function DomesticFuturePage() {
       </nav>
 
       {/* Tab panel */}
-      <section className="p-6">
+      <section className="-mx-4 sm:mx-0 px-4 sm:px-6 py-4 sm:py-6">
         {activeTab === 'monitor' && <MonitorContent />}
         {activeTab === 'performance' && <PerformanceContent />}
       </section>
@@ -290,91 +290,99 @@ function MonitorContent() {
   }, [data, futureData]);
 
   return (
-    <main className="p-8 space-y-8">
+    <main className="px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* KPI 카드 (Mock Data) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} />
         ))}
       </div>
 
       {/* 실시간 주식 계좌 잔고 포지션 테이블 (API) */}
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
-        columns={[
-          { header: '종목', accessor: 'symbol' },
-          { header: '매수/매도', accessor: 'side', align: 'center' },
-          { header: '수량', accessor: 'qty', align: 'right' },
-          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
-          { header: '현재가', accessor: 'currentPrice', align: 'right' },
-          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
-          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
-          { header: '손익금액', accessor: 'plAmount', align: 'right' },
-          { header: '수익률', accessor: 'plPercent', align: 'right' },
-        ]}
-        data={positions}
-        loading={isLoading && !data}
-        emptyMessage="보유 종목이 없습니다."
-        error={error}
-      />
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 계좌 잔고`}
+          columns={[
+            { header: '종목', accessor: 'symbol' },
+            { header: '매수/매도', accessor: 'side', align: 'center' },
+            { header: '수량', accessor: 'qty', align: 'right' },
+            { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+            { header: '현재가', accessor: 'currentPrice', align: 'right' },
+            { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+            { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+            { header: '손익금액', accessor: 'plAmount', align: 'right' },
+            { header: '수익률', accessor: 'plPercent', align: 'right' },
+          ]}
+          data={positions}
+          loading={isLoading && !data}
+          emptyMessage="보유 종목이 없습니다."
+          error={error}
+        />
+      </div>
       {/* 실시간 선물옵션 계좌 잔고 포지션 테이블 (API) */}
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
-        columns={[
-          { header: '종목', accessor: 'symbol' },
-          { header: '괴리율', accessor: 'divergence', align: 'center' },
-          { header: '매수/매도', accessor: 'side', align: 'center' },
-          { header: '수량', accessor: 'qty', align: 'right' },
-          { header: '평균단가', accessor: 'avgPrice', align: 'right' },
-          { header: '현재가', accessor: 'currentPrice', align: 'right' },
-          { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
-          { header: '평가금액', accessor: 'evalAmount', align: 'right' },
-          { header: '손익금액', accessor: 'plAmount', align: 'right' },
-          { header: '수익률', accessor: 'plPercent', align: 'right' },
-        ]}
-        data={futurePositions}
-        loading={futureLoading && !futureData}
-        emptyMessage="보유 종목이 없습니다."
-        error={futureError}
-      />
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 계좌 잔고`}
+          columns={[
+            { header: '종목', accessor: 'symbol' },
+            { header: '괴리율', accessor: 'divergence', align: 'center' },
+            { header: '매수/매도', accessor: 'side', align: 'center' },
+            { header: '수량', accessor: 'qty', align: 'right' },
+            { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+            { header: '현재가', accessor: 'currentPrice', align: 'right' },
+            { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+            { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+            { header: '손익금액', accessor: 'plAmount', align: 'right' },
+            { header: '수익률', accessor: 'plPercent', align: 'right' },
+          ]}
+          data={futurePositions}
+          loading={futureLoading && !futureData}
+          emptyMessage="보유 종목이 없습니다."
+          error={futureError}
+        />
+      </div>
 
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
-        columns={[
-          { header: '주문번호', accessor: 'orderNo' },
-          { header: '주문시각', accessor: 'orderTime' },
-          { header: '종목', accessor: 'symbol' },
-          { header: '매수/매도', accessor: 'side' },
-          { header: '주문수량', accessor: 'orderQty', align: 'right' },
-          { header: '체결수량', accessor: 'filledQty', align: 'right' },
-          { header: '주문가격', accessor: 'orderPrice', align: 'right' },
-          { header: '평균체결가격', accessor: 'avgPrice', align: 'right' },
-          { header: '총체결금액', accessor: 'totalAmount', align: 'right' },
-        ]}
-        data={orders}
-        loading={orderLoading && !orderData}
-        emptyMessage="금일 체결 내역이 없습니다."
-        error={orderError}
-      />
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_SPOT_CANO}-${process.env.NEXT_PUBLIC_KIS_ACNT_PRDT_CD} | 주식 일별주문체결`}
+          columns={[
+            { header: '주문번호', accessor: 'orderNo' },
+            { header: '주문시각', accessor: 'orderTime' },
+            { header: '종목', accessor: 'symbol' },
+            { header: '매수/매도', accessor: 'side' },
+            { header: '주문수량', accessor: 'orderQty', align: 'right' },
+            { header: '체결수량', accessor: 'filledQty', align: 'right' },
+            { header: '주문가격', accessor: 'orderPrice', align: 'right' },
+            { header: '평균체결가격', accessor: 'avgPrice', align: 'right' },
+            { header: '총체결금액', accessor: 'totalAmount', align: 'right' },
+          ]}
+          data={orders}
+          loading={orderLoading && !orderData}
+          emptyMessage="금일 체결 내역이 없습니다."
+          error={orderError}
+        />
+      </div>
 
-      <DataTable
-        title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
-        columns={[
-          { header: '주문번호', accessor: '주문번호' },
-          { header: '주문시각', accessor: '주문시각' },
-          { header: '종목', accessor: '종목' },
-          { header: '매수/매도', accessor: '매수매도', align: 'center' },
-          { header: '주문수량', accessor: '주문수량', align: 'right' },
-          { header: '총체결수량', accessor: '총체결수량', align: 'right' },
-          { header: '주문가격', accessor: '주문가격', align: 'right' },
-          { header: '평균체결가격', accessor: '평균체결가격', align: 'right' },
-          { header: '총체결금액', accessor: '총체결금액', align: 'right' },
-        ]}
-        data={foOrders}
-        loading={foLoading && !foOrderData}
-        emptyMessage="금일 체결 내역이 없습니다."
-        error={foError}
-      />
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_KIS_CANO}-${process.env.NEXT_PUBLIC_KIS_FUTURE_ACNT_PRDT_CD} | 선물옵션 일별주문체결`}
+          columns={[
+            { header: '주문번호', accessor: '주문번호' },
+            { header: '주문시각', accessor: '주문시각' },
+            { header: '종목', accessor: '종목' },
+            { header: '매수/매도', accessor: '매수매도', align: 'center' },
+            { header: '주문수량', accessor: '주문수량', align: 'right' },
+            { header: '총체결수량', accessor: '총체결수량', align: 'right' },
+            { header: '주문가격', accessor: '주문가격', align: 'right' },
+            { header: '평균체결가격', accessor: '평균체결가격', align: 'right' },
+            { header: '총체결금액', accessor: '총체결금액', align: 'right' },
+          ]}
+          data={foOrders}
+          loading={foLoading && !foOrderData}
+          emptyMessage="금일 체결 내역이 없습니다."
+          error={foError}
+        />
+      </div>
     </main>
   );
 }
@@ -413,10 +421,10 @@ function PerformanceContent() {
   console.log('dailyApiData', dailyApiData);
 
   return (
-    <main className="mx-auto max-w-7xl p-8 space-y-10">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* 2️⃣ Portfolio Analysis */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Analysis</h2>
+        <h2 className="text-xl font-semibold">Analysis (Mock)</h2>
         {/* 주요 지표 5-col 그리드 */}
         <div className="grid grid-cols-2 gap-x-12 gap-y-4 sm:grid-cols-3 md:grid-cols-5">
           {analysisMetrics.map((m) => (
@@ -440,8 +448,8 @@ function PerformanceContent() {
 
       {/* 2️⃣ Growth */}
       <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="text-xl font-semibold">Growth</h2>
-        <div className="h-64 w-full">
+        <h2 className="text-xl font-semibold">Growth (Mock)</h2>
+        <div className="h-48 sm:h-64 w-full">
           <ResponsiveContainer>
             <AreaChart data={growthData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
               <defs>
@@ -467,7 +475,7 @@ function PerformanceContent() {
 
       {/* 4️⃣ Monthly Details by Year */}
       <section className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Monthly Details by Year</h2>
+        <h2 className="text-xl font-semibold">Monthly Details by Year (Mock)</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm tracking-tight">
             <thead className="text-slate-500 border-b">

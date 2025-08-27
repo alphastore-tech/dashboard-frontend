@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Label } from 'recharts';
 
 interface AllocationData {
   name: string;
@@ -60,13 +60,37 @@ const AssetAllocationSection = <T extends 'group1' | 'group2' = 'group1'>({
 
   const viewModeOptions = getViewModeOptions();
 
+  const RADIAN = Math.PI / 180;
+  const renderInsidePercent = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+    if (percent < 0.045) return null; // 너무 작은 조각은 라벨 생략 (겹침 방지)
+    const r = innerRadius + (outerRadius - innerRadius) * 0.55; // 조각 안쪽에 배치
+    const x = cx + r * Math.cos(-midAngle * RADIAN);
+    const y = cy + r * Math.sin(-midAngle * RADIAN);
+    return (
+      <text
+        x={x}
+        y={y}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={11}
+        fill="#ffffff"
+        style={{ pointerEvents: 'none' }}
+      >
+        {(percent * 100).toFixed(0)}%
+      </text>
+    );
+  };
+
   return (
     <section
       className={`rounded-xl border border-border bg-white p-6 space-y-4 shadow-sm dark:bg-slate-800 dark:border-slate-700 ${className}`}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{title}</h2>
-
+        <h2 className="text-xl font-semibold">
+          <span className="sm:hidden">Allocation</span>
+          <span className="hidden sm:inline">{title}</span>
+        </h2>
         {showViewToggle && viewMode && onViewModeChange && (
           <div className="inline-flex rounded-md shadow-sm" role="group">
             {viewModeOptions.map((btn) => (
@@ -84,7 +108,6 @@ const AssetAllocationSection = <T extends 'group1' | 'group2' = 'group1'>({
           </div>
         )}
       </div>
-
       <div className="h-64 w-full">
         <ResponsiveContainer>
           <PieChart>
@@ -95,7 +118,8 @@ const AssetAllocationSection = <T extends 'group1' | 'group2' = 'group1'>({
               innerRadius={60}
               outerRadius={90}
               paddingAngle={3}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+              label={renderInsidePercent} // ⬅️ 조각 내부 % 라벨
+              labelLine={false} // ⬅️ 라벨 가이드 라인 숨김
             >
               {data.map((_, idx) => (
                 <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />

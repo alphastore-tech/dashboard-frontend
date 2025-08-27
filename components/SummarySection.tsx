@@ -22,23 +22,6 @@ const fmtCur = (n: number, currency: 'KRW' | 'USD' = 'KRW') => {
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
 const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
 
-const fmtCurrency = (n?: number, currency: 'KRW' | 'USD' = 'KRW') => {
-  if (n === undefined || n === null) return currency === 'USD' ? '$0' : '₩0';
-  const symbol = currency === 'USD' ? '$' : '₩';
-  return `${symbol}${n.toLocaleString()}`;
-};
-
-const fmtSignedCurrency = (n?: number, currency: 'KRW' | 'USD' = 'KRW') => {
-  if (n === undefined || n === null) return currency === 'USD' ? '$0' : '₩0';
-  const sign = n >= 0 ? '+' : '';
-  const symbol = currency === 'USD' ? '$' : '₩';
-  return `${sign}${symbol}${Math.abs(n).toLocaleString()}`;
-};
-
-const arrow = (n: number) => (n >= 0 ? '▲' : '▼');
-const colorClass = (n: number) =>
-  n > 0 ? 'text-red-600' : n < 0 ? 'text-blue-600' : 'text-gray-600';
-
 const SummarySection = ({
   data,
   title = 'Summary',
@@ -70,7 +53,7 @@ const SummarySection = ({
         {/* Today PNL */}
         <div>
           <p className="text-sm text-slate-500">Today PNL</p>
-          <p className={`mt-1 text-2xl font-bold ${color(data.todayPnlAmt)}`}>
+          <p className={`mt-1 text-xl sm:text-2xl font-bold ${color(data.todayPnlAmt)}`}>
             {fmtCur(data.todayPnlAmt, currency)}
           </p>
           <p className={`text-sm ${color(data.todayPnlPct)}`}>{fmtPct(data.todayPnlPct)}</p>
@@ -79,8 +62,8 @@ const SummarySection = ({
         {/* Total PNL */}
         <div>
           <p className="text-sm text-slate-500">Total PNL</p>
-          <p className={`mt-1 text-2xl font-bold ${color(data.totalPnlAmt)}`}>
-            +{fmtCur(data.totalPnlAmt, currency)}
+          <p className={`mt-1 text-xl sm:text-2xl font-bold ${color(data.totalPnlAmt)}`}>
+            {fmtCur(data.totalPnlAmt, currency)}
           </p>
           <p className={`text-sm ${color(data.totalPnlPct)}`}>{fmtPct(data.totalPnlPct)}</p>
         </div>
