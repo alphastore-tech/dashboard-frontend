@@ -13,6 +13,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
 import { useDailyPeriodPnl, useMonthlyPeriodPnl } from '@/hooks/usePeriodPnl';
+import useLsBalance from '@/hooks/useLsBalance';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -154,6 +155,9 @@ export default function DomesticFuturePage() {
 function MonitorContent() {
   const { data, isLoading, error } = useBalance();
   const { data: futureData, isLoading: futureLoading, error: futureError } = useFoBalance();
+
+  const { data: lsData, isLoading: lsLoading, error: lsError } = useLsBalance();
+
   const { data: orderData, isLoading: orderLoading, error: orderError } = useOrders();
 
   const { data: foOrderData, isLoading: foLoading, error: foError } = useFoOrders();
@@ -192,6 +196,25 @@ function MonitorContent() {
         plPercent: ((Number(o.evlu_pfls_amt) / Number(o.pchs_amt)) * 100).toFixed(2) + '%',
       }))
       .filter((o: any) => o.qty > 0)
+      .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
+  }
+
+  // LS 주식 잔고 → KIS 테이블과 동일한 형태로 매핑
+  let lsPositions: any[] = [];
+  if (lsData && lsData.t0424OutBlock1) {
+    lsPositions = lsData.t0424OutBlock1
+      .map((o: any) => ({
+        symbol: o.hname,
+        side: o.jangb,
+        qty: Number(o.janqty),
+        avgPrice: Number(o.pamt).toLocaleString(),
+        currentPrice: Number(o.price).toLocaleString(),
+        purchaseAmount: Number(o.mamt).toLocaleString(),
+        evalAmount: Number(o.appamt).toLocaleString(),
+        plAmount: Number(o.dtsunik).toLocaleString(),
+        plPercent: (Number(o.sunikrt) || 0).toFixed(2) + '%',
+      }))
+      .filter((o: any) => o.qty !== 0)
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
 
@@ -296,6 +319,27 @@ function MonitorContent() {
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} />
         ))}
+      </div>
+      {/* 실시간 LS 주식 계좌 잔고 포지션 테이블 (API) */}
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_LS_ACCOUNT_NUMBER}-${process.env.NEXT_PUBLIC_LS_ACCOUNT_PROD_CODE} | 주식 계좌 잔고`}
+          columns={[
+            { header: '종목', accessor: 'symbol' },
+            { header: '매수/매도', accessor: 'side', align: 'center' },
+            { header: '수량', accessor: 'qty', align: 'right' },
+            { header: '평균단가', accessor: 'avgPrice', align: 'right' },
+            { header: '현재가', accessor: 'currentPrice', align: 'right' },
+            { header: '매입금액', accessor: 'purchaseAmount', align: 'right' },
+            { header: '평가금액', accessor: 'evalAmount', align: 'right' },
+            { header: '손익금액', accessor: 'plAmount', align: 'right' },
+            { header: '수익률', accessor: 'plPercent', align: 'right' },
+          ]}
+          data={lsPositions}
+          loading={lsLoading && !lsData}
+          emptyMessage="보유 종목이 없습니다."
+          error={lsError}
+        />
       </div>
 
       {/* 실시간 주식 계좌 잔고 포지션 테이블 (API) */}
