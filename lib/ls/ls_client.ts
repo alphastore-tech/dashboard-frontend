@@ -2,6 +2,8 @@
 import qs from 'querystring';
 import { getAccessToken } from './ls_auth';
 import { BalanceResponse } from '@/types/api/ls/balance';
+import { OrderResponse } from '@/types/api/ls/order';
+import dayjs from 'dayjs';
 
 const { LS_DOMAIN } = process.env as Record<string, string>;
 
@@ -56,5 +58,36 @@ export class LsClient {
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json() as Promise<BalanceResponse>;
+  }
+
+  /** 일별 주문체결 조회 */
+  async fetchOrder(): Promise<OrderResponse> {
+    const headers = await this.createHttpHeaders('CSPAQ13700', 'N', '');
+    const today = dayjs().format('YYYYMMDD');
+
+    const requestBody = {
+      CSPAQ13700InBlock1: {
+        OrdMktCode: '00',
+        BnsTpCode: '0',
+        IsuNo: '',
+        ExecYn: '0',
+        OrdDt: today,
+        SrtOrdNo2: 0,
+        BkseqTpCode: '0',
+        OrdPtnCode: '00',
+      },
+    };
+
+    const res = await fetch(`${this.domain}/stock/accno`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+      cache: 'no-store',
+    });
+
+    console.log(res);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json() as Promise<OrderResponse>;
   }
 }

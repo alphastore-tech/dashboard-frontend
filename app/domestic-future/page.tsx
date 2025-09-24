@@ -14,6 +14,7 @@ import { ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
 import { useDailyPeriodPnl, useMonthlyPeriodPnl } from '@/hooks/usePeriodPnl';
 import useLsBalance from '@/hooks/useLsBalance';
+import useLSOrder from '@/hooks/useLSOrder';
 
 // ────────────────────────────────────────────────────────────
 // 📊 MOCK DATA & UTILITIES
@@ -58,55 +59,8 @@ const columns = [
   { key: 'cashFlow', label: '입출금', align: 'right' as const },
 ];
 
-// Utility functions
-const fmtCur = (n: number) => `₩${n.toLocaleString()}`;
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
 const color = (n: number) => (n >= 0 ? 'text-rose-600' : 'text-blue-600');
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-function generateMonthly(n: number) {
-  const res = [];
-  const today = new Date();
-  for (let i = 0; i < n; i++) {
-    const d = new Date(today);
-    d.setMonth(d.getMonth() - i);
-    const item = {
-      date: d.toISOString().slice(0, 7),
-      totalPnl: randomInt(-500_000, 800_000),
-      stockPnl: randomInt(-300_000, 500_000),
-      futurePnl: randomInt(-200_000, 300_000),
-      tradeCount: randomInt(15, 60),
-      contangoCount: randomInt(0, 10),
-      backCount: randomInt(0, 10),
-      cashFlow: randomInt(-1_000_000, 2_000_000),
-    };
-    res.push(item);
-  }
-  return res;
-}
-
-function generateDaily(n: number) {
-  const res = [];
-  const today = new Date();
-  for (let i = 0; i < n; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const item = {
-      date: d.toISOString().slice(0, 10),
-      totalPnl: randomInt(-50_000, 80_000),
-      stockPnl: randomInt(-30_000, 50_000),
-      futurePnl: randomInt(-20_000, 30_000),
-      tradeCount: randomInt(1, 10),
-      contangoCount: randomInt(0, 3),
-      backCount: randomInt(0, 3),
-      cashFlow: randomInt(-200_000, 200_000),
-    };
-    res.push(item);
-  }
-  return res;
-}
 
 // ────────────────────────────────────────────────────────────
 // 🖼️   PAGE COMPONENT
@@ -159,6 +113,7 @@ function MonitorContent() {
   const { data: lsData, isLoading: lsLoading, error: lsError } = useLsBalance();
 
   const { data: orderData, isLoading: orderLoading, error: orderError } = useOrders();
+  const { data: lsOrderData, isLoading: lsOrderLoading, error: lsOrderError } = useLSOrder();
 
   const { data: foOrderData, isLoading: foLoading, error: foError } = useFoOrders();
 
@@ -216,6 +171,33 @@ function MonitorContent() {
       }))
       .filter((o: any) => o.qty !== 0)
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
+  }
+
+  let lsOrders: any[] = [];
+  if (lsOrderData && lsOrderData.CSPAQ13700OutBlock3) {
+    lsOrders = lsOrderData.CSPAQ13700OutBlock3.map((o: any) => {
+      const hh = o.OrdTime?.slice(0, 2) ?? '';
+      const mm = o.OrdTime?.slice(2, 4) ?? '';
+      const ss = o.OrdTime?.slice(4, 6) ?? '';
+
+      const orderQty = Number(o.OrdQty ?? 0);
+      const filledQty = Number(o.ExecQty ?? 0);
+      const orderPriceNum = Number(o.OrdPrc ?? 0);
+      const execPriceNum = Number(o.ExecPrc ?? 0);
+      const totalAmountNum = filledQty * execPriceNum;
+
+      return {
+        orderNo: o.OrdNo,
+        orderTime: o.OrdTime ? `${hh}:${mm}:${ss}` : '',
+        symbol: o.IsuNm,
+        side: o.BnsTpNm, // 매수/매도
+        orderQty,
+        filledQty,
+        orderPrice: orderPriceNum.toLocaleString(),
+        avgPrice: execPriceNum.toLocaleString(),
+        totalAmount: totalAmountNum.toLocaleString(),
+      };
+    });
   }
 
   const orders =
@@ -404,6 +386,27 @@ function MonitorContent() {
           loading={orderLoading && !orderData}
           emptyMessage="금일 체결 내역이 없습니다."
           error={orderError}
+        />
+      </div>
+
+      <div className="overflow-x-auto">
+        <DataTable
+          title={`${process.env.NEXT_PUBLIC_LS_ACCOUNT_NUMBER}-${process.env.NEXT_PUBLIC_LS_ACCOUNT_PROD_CODE} | 주식 일별주문체결`}
+          columns={[
+            { header: '주문번호', accessor: 'orderNo' },
+            { header: '주문시각', accessor: 'orderTime' },
+            { header: '종목', accessor: 'symbol' },
+            { header: '매수/매도', accessor: 'side' },
+            { header: '주문수량', accessor: 'orderQty', align: 'right' },
+            { header: '체결수량', accessor: 'filledQty', align: 'right' },
+            { header: '주문가격', accessor: 'orderPrice', align: 'right' },
+            { header: '평균체결가격', accessor: 'avgPrice', align: 'right' },
+            { header: '총체결금액', accessor: 'totalAmount', align: 'right' },
+          ]}
+          data={lsOrders}
+          loading={lsOrderLoading && !lsOrderData}
+          emptyMessage="금일 체결 내역이 없습니다."
+          error={lsOrderError}
         />
       </div>
 
