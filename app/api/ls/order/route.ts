@@ -11,6 +11,9 @@ export async function POST() {
     const orderData = await lsClient.fetchOrder();
     console.log('LS order: ', orderData);
 
+    const orderData2 = await lsClient.fetchOrder2();
+    console.log('LS order2: ', orderData2);
+
     return NextResponse.json(orderData, { status: 200 });
   } catch (err: any) {
     console.error(err);

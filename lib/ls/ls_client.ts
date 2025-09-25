@@ -3,6 +3,7 @@ import qs from 'querystring';
 import { getAccessToken } from './ls_auth';
 import { BalanceResponse } from '@/types/api/ls/balance';
 import { OrderResponse } from '@/types/api/ls/order';
+import { OrderResponse2 } from '@/types/api/ls/order';
 import dayjs from 'dayjs';
 
 const { LS_DOMAIN } = process.env as Record<string, string>;
@@ -89,5 +90,33 @@ export class LsClient {
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json() as Promise<OrderResponse>;
+  }
+
+  /** 일별 주문체결 조회 */
+  async fetchOrder2(): Promise<OrderResponse2> {
+    const headers = await this.createHttpHeaders('CDPCQ04700', 'N', '');
+    const today = dayjs().format('YYYYMMDD');
+
+    const requestBody = {
+      CDPCQ04700InBlock1: {
+        QryTp: '0',
+        QrySrtDt: today,
+        QryEndDt: today,
+        SrtNo: 0,
+        PdptnCode: '01',
+        IsuLgclssCode: '01',
+        IsuNo: '',
+      },
+    };
+
+    const res = await fetch(`${this.domain}/stock/accno`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+      cache: 'no-store',
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json() as Promise<OrderResponse2>;
   }
 }
